@@ -1,0 +1,109 @@
+
+\documentclass[a4paper, 11pt, oneside]{Seminar}  % Use the "Seminar" style, based on the ECS Thesis style by Steve Gunn
+\renewcommand{\familydefault}{\sfdefault} % Use sans-serif
+\usepackage{helvet} % Helvetica font
+
+\graphicspath{Figures/}  % Location of the graphics files (set up for graphics to be in PDF format)
+
+% Include any extra LaTeX packages required
+\usepackage[square, numbers, comma, sort&compress]{natbib}
+\usepackage{verbatim} 
+\usepackage{vector} 
+\hypersetup{urlcolor=blue, colorlinks=true}
+\usepackage{tikz} 
+\usepackage[export]{adjustbox}
+\usepackage{float}
+\usepackage{lipsum}
+\usepackage{todonotes}
+
+
+\definecolor{shadecolor}{RGB}{180, 180, 180}
+
+\hbadness=99999
+\hfuzz=9999pt
+
+\pagestyle{fancy}
+\renewcommand\chaptermark[1]{\markboth{#1}{}}
+\fancyhf{}
+\fancyhead[L]{\emph\leftmark}
+\fancyhead[R]{\thepage}
+
+%% ----------------------------------------------------------------
+\begin{document}
+\frontmatter      % Begin Roman style (i, ii, iii, iv...) page numbering
+
+\input{Titlepage/Titlepage}
+
+%% ----------------------------------------------------------------
+
+\setstretch{1.2} 
+
+\addtotoc{Abstract}  
+\abstract{
+	\addtocontents{toc}{\vspace{1em}}  
+	\input{Abstract/Abstract}
+}
+
+\clearpage  % Abstract ended, start a new page
+%% ----------------------------------------------------------------
+
+% The Acknowledgements page, for thanking everyone
+\acknowledgements{
+\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
+
+\input{Acknowledgements/Acknowledgements}
+
+}
+\clearpage  % End of the Acknowledgements
+%% ----------------------------------------------------------------
+
+
+%% ----------------------------------------------------------------
+\setcounter{tocdepth}{1}
+\tableofcontents  % Write out the Table of Contents
+
+%% ----------------------------------------------------------------
+\mainmatter	  % Begin normal, numeric (1,2,3...) page numbering
+
+
+\input{Chapters/Introduction}
+
+% Praxis part
+\input{Chapters/Synthetic_Data}
+
+\input{Chapters/Implementation}
+
+
+%\lhead{\emph{Presentations}}
+%\input{Chapters/Presentations}
+
+\input{Chapters/Conclusion}
+
+%% ----------------------------------------------------------------
+%\listoffigures  % Write out the List of Figures
+
+%% ----------------------------------------------------------------
+% Now begin the Appendices, including them as separate files
+
+\addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
+
+\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
+
+\lhead{\emph{Appendix}}
+\chapter{Installation}
+
+\input{Appendices/Installation}
+\input{Appendices/Data}
+
+\newpage
+\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
+\backmatter
+
+%% ----------------------------------------------------------------
+\label{Bibliography}
+\lhead{\emph{Bibliography}}  % Change the left side page header to "Bibliography"
+\bibliographystyle{unsrtnat}  % Use the "unsrtnat" BibTeX style for formatting the Bibliography
+\bibliography{Bibliography}  % The references (bibliography) information are stored in the file named "Bibliography.bib"
+
+\end{document}  % The End
+%% ----------------------------------------------------------------
