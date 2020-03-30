@@ -1,11 +1,10 @@
 
-\documentclass[a4paper, 11pt, oneside]{Seminar}  % Use the "Seminar" style, based on the ECS Thesis style by Steve Gunn
-\renewcommand{\familydefault}{\sfdefault} % Use sans-serif
-\usepackage{helvet} % Helvetica font
+\documentclass[a4paper, 11pt, oneside]{Seminar}
+\renewcommand{\familydefault}{\sfdefault} 
+\usepackage{helvet}
 
-\graphicspath{Figures/}  % Location of the graphics files (set up for graphics to be in PDF format)
+\graphicspath{Figures/}
 
-% Include any extra LaTeX packages required
 \usepackage[square, numbers, comma, sort&compress]{natbib}
 \usepackage{verbatim} 
 \usepackage{vector} 
@@ -30,7 +29,7 @@
 
 %% ----------------------------------------------------------------
 \begin{document}
-\frontmatter      % Begin Roman style (i, ii, iii, iv...) page numbering
+\frontmatter  
 
 \input{Titlepage/Titlepage}
 
@@ -44,31 +43,23 @@
 	\input{Abstract/Abstract}
 }
 
-\clearpage  % Abstract ended, start a new page
-%% ----------------------------------------------------------------
+\clearpage
 
-% The Acknowledgements page, for thanking everyone
 \acknowledgements{
-\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
+\addtocontents{toc}{\vspace{1em}} 
 
 \input{Acknowledgements/Acknowledgements}
 
 }
-\clearpage  % End of the Acknowledgements
-%% ----------------------------------------------------------------
+\clearpage
 
-
-%% ----------------------------------------------------------------
 \setcounter{tocdepth}{1}
-\tableofcontents  % Write out the Table of Contents
+\tableofcontents 
 
-%% ----------------------------------------------------------------
-\mainmatter	  % Begin normal, numeric (1,2,3...) page numbering
-
+\mainmatter
 
 \input{Chapters/Introduction}
 
-% Praxis part
 \input{Chapters/Synthetic_Data}
 
 \input{Chapters/Implementation}
@@ -76,30 +67,25 @@
 \input{Chapters/ToolEvaluation}
 
 
-%\lhead{\emph{Presentations}}
-%\input{Chapters/Presentations}
 
 \input{Chapters/Conclusion}
 
-%% ----------------------------------------------------------------
-%\listoffigures  % Write out the List of Figures
 
-%% ----------------------------------------------------------------
-% Now begin the Appendices, including them as separate files
+%\listoffigures 
 
-\addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
+\addtocontents{toc}{\vspace{2em}}
 
-\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
+\appendix 
 
 \lhead{\emph{Appendix}}
-\chapter{Installation}
 
 \input{Appendices/Installation}
 \input{Appendices/UsageOfTool}
 \input{Appendices/TestDatasets}
 
 \newpage
-\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
+\addtocontents{toc}{\vspace{2em}}
+
 \backmatter
 
 %% ----------------------------------------------------------------
