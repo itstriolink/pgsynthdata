@@ -3,7 +3,7 @@ stages: [
   "build",
 ]
 
-build_docu:
+documentation:
   image: "timnn/texlive"
   stage: "build"
   script: [
