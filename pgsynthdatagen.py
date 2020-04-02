@@ -62,7 +62,7 @@ def connect(parameters, db_name, owner, config_file_path):
         create_database(cursor, db_name, owner)
         cursor.close()
     except psycopg2.DatabaseError:
-        sys.stdout.write('''Connection failed because of at least one of the following reasons:
+        print('''Connection failed because of at least one of the following reasons:
     User does not exist
     Wrong password''')
     finally:
@@ -79,12 +79,12 @@ def create_database(cursor, db_name, owner):
             db_name=sql.Identifier(db_name),
             owner=sql.Identifier(owner) if owner is not None else None))
     else:
-        sys.stdout.write('The database you tried to create already exists. Please specify a new database name.')
+        print('The database you tried to create already exists. Please specify a new database name.')
 
 
 def file_exists(file_path):
     if not os.path.exists(file_path):
-        sys.stdout.write('The config file you specified does not exist. Please specify another file.')
+        print('The config file you specified does not exist. Please specify another file.')
         sys.exit()
 
 

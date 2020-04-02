@@ -54,7 +54,7 @@ def connect(parameters):
         result = cursor.fetchall()
         cursor.close()
     except psycopg2.DatabaseError:
-        sys.stdout.write('''Connection failed because of at least one of the following reasons:
+        print('''Connection failed because of at least one of the following reasons:
     Could not find specified database or database does not exist
     User does not exist
     Wrong password''')
