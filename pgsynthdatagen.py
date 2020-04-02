@@ -1,7 +1,9 @@
 import sys
+import os
 
 import psycopg2
 from psycopg2 import sql
+
 
 import argparse
 from pathlib import Path
@@ -27,10 +29,9 @@ def main():
     password = f' password={args.password}'
     owner = args.owner
     config_file_path = args.config
+    file_exists(config_file_path)
     parameters = f'dbname=postgres{host}{port}{user}{password}'
     connect(parameters, db_name, owner, config_file_path)
-
-    # config_file = Path(args.config)
 
 
 def parse_arguments():
@@ -79,6 +80,12 @@ def create_database(cursor, db_name, owner):
             owner=sql.Identifier(owner) if owner is not None else None))
     else:
         sys.stdout.write('The database you tried to create already exists. Please specify a new database name.')
+
+
+def file_exists(file_path):
+    if not os.path.exists(file_path):
+        sys.stdout.write('The config file you specified does not exist. Please specify another file.')
+        sys.exit()
 
 
 if __name__ == '__main__':
