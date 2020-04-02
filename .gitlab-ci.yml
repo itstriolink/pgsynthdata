@@ -8,9 +8,6 @@ build_docu:
   stage: "build"
   script: [
       "cd documentation",
-      "pdflatex Seminar.tex",
-      "bibtex Seminar",
-      "pdflatex Seminar.tex",
       "pdflatex Seminar.tex"
       ]
   artifacts:
