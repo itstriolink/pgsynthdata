@@ -1,0 +1,18 @@
+before_script: []
+stages: [
+  "build",
+]
+
+build_docu:
+  image: "timnn/texlive"
+  stage: "build"
+  script: [
+      "cd documentation",
+      "pdflatex Seminar.tex",
+      "bibtex Seminar",
+      "pdflatex Seminar.tex",
+      "pdflatex Seminar.tex"
+      ]
+  artifacts:
+    paths:
+      - docu/Seminar.pdf
