@@ -12,4 +12,4 @@ build_docu:
       ]
   artifacts:
     paths:
-      - docu/Seminar.pdf
+      - documentation/Seminar.pdf
