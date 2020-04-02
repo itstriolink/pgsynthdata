@@ -25,8 +25,8 @@ def main():
     port = '' if args.port is None else f' port={args.port}'
     user = '' if args.user is None else f' user={args.user}'
     password = f' password={args.password}'
-    config_file_path = f' config={args.config}'
     owner = args.owner
+    config_file_path = args.config
     parameters = f'dbname=postgres{host}{port}{user}{password}'
     connect(parameters, db_name, owner, config_file_path)
 

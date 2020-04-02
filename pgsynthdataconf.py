@@ -1,3 +1,5 @@
+import sys
+
 import argparse
 from pathlib import Path
 
@@ -50,10 +52,9 @@ def connect(parameters):
         cursor = connection.cursor()
         cursor.execute("select * from pg_stats where tablename = 'actor' and attname = 'first_name';")
         result = cursor.fetchall()
-        print(result)
         cursor.close()
     except psycopg2.DatabaseError:
-        print('''Connection failed because of at least one of the following reasons:
+        sys.stdout.write('''Connection failed because of at least one of the following reasons:
     Could not find specified database or database does not exist
     User does not exist
     Wrong password''')
