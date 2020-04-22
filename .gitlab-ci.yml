@@ -8,7 +8,7 @@ documentation:
   stage: "build"
   script: [
       "cd documentation",
-      "pdflatex Seminar.tex"
+      "pdflatex --shell-escape Seminar.tex"
       ]
   artifacts:
     paths:
