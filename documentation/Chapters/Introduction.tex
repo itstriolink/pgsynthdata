@@ -1,8 +1,25 @@
 \chapter{Introduction}
 \section{General}
-\lipsum[3-4]
+The need for creating and generating synthetic or rather, data that is not real, has become a necessary factor in big companies. Some of the main reasons why such data is required to be created can be: privacy limitations, the need for test data, various experiments, research etc.\\
+\newline
+Synthetic data are generated to meet specific needs or certain conditions that may not be found in the original, real data. This can be useful when designing any type of system because the synthetic data are used as a simulation or as a theoretical value, situation, etc. This allows us to take into account unexpected results and have a basic solution or remedy, if the results prove to be unsatisfactory. Synthetic data are often generated to represent the authentic data and allows a baseline to be set. \cite{SyntheticDataUsefulness}\\
+\newline
+Business functions that usually benefit from the creation of synthetic data can be: Machine Learning, Data Mining, Agile Development, Researching etc. There are also several business types that benefit from synthetic data such as: Healthcare Systems, Financial Services, Fraud Detection Systems etc. \cite{AIMultipleSyntheticData}\\
+\newline
+At a first glance, synthetic data may seem like "random made up data", when in fact, behind that synthetic data, stand various algorithms and generation methods that are used to create such data which must look as realistic as possible.\\
+Synthetic data is used mostly to protect the privacy and confidentiality of a particular set of data. Real data can contain personal information about people or things that a software engineer or researcher is not supposed to know. Therefore, synthetic data does not contain personal information that can fall into contrary with privacy laws or information that you can use to trace back to individuals.\\
+\newline
+There's often a misconception about Synthetic Data, Anonymized Data and Artificial Data. They serve mostly the same purposes but involve different techniques and results.\\ 
+Anonymised Data is getting the original data and adding "noise" to it, encrypting it or even masking it. Ultimately, the anonymised data will correspond to the original data in some form somewhere.\\
+Artificial Data on the other hand, is generated data with no linking or relation to original data apart from the model building.\\
+\newline
+In this project, we will be discussing the methods and techniques used for the generation of synthetic data and the original data used to generate such data, which means, fully artificial data with relation to the original data but with no clear signs of the original data.
 \section{Goals \& Requirements}
-\lipsum[9-11]
+The main objective of this project is to successfully generate fully synthesized data that is as realistic as possible using the \textit{PostgreSQL} relational database management system and the \textit{Python} programming language in conjunction with some other third-party modules that mostly deal with numbers.\\
+This will be done using various methods and techniques that involve some sort of data anonymization, overcoming data type obstacles, histogram boundaries, respecting data privacy and data confidentiality etc. The tool initially tries to connect to an existing database and then based on the options provided, it will generate the synthesized data into a new desired database from the selected existing database. The process should be very straightforward.\\
+The tool will be a single lightweight Python script that is executed from the shell terminal and which has various arguments that can be passed along with the command execution, with some of them being mandatory and some others optional (mostly related to database configuration and parameters).\\
+It will initially connect to a PostgreSQL database (given with arguments) , read the \textit{pg\_class} table in order to obtain the tables of the given/accessed database and then fetch all the results of each table from the \textit{pg\_stats} table. 
+To be continued...
 \section{Synthetic Data Generation}
 \lipsum[8-10]
 \section{Results}

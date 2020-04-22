@@ -1,20 +1,21 @@
-
-\documentclass[a4paper, 11pt, oneside]{Seminar}
+\documentclass[a4paper, 12pt, oneside]{Seminar}
 \renewcommand{\familydefault}{\sfdefault} 
 \usepackage{helvet}
 
 \graphicspath{Figures/}
 
 \usepackage[square, numbers, comma, sort&compress]{natbib}
-\usepackage{verbatim} 
-\usepackage{vector} 
+\usepackage{verbatim}
 \hypersetup{urlcolor=blue, colorlinks=true}
 \usepackage{tikz} 
 \usepackage[export]{adjustbox}
 \usepackage{float}
 \usepackage{lipsum}
 \usepackage{todonotes}
-
+\usepackage{minted}
+\PassOptionsToPackage{hyphens}{url}
+\usepackage{hyperref}
+\usepackage{url}
 
 \definecolor{shadecolor}{RGB}{180, 180, 180}
 
@@ -62,7 +63,7 @@
 \input{Chapters/ToolEvaluation}
 \input{Chapters/Conclusion}
 
-
+\listoffigures
 \addtocontents{toc}{\vspace{2em}}
 
 \appendix 

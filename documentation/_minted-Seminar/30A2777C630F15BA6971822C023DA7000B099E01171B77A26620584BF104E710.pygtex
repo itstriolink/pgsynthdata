@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+python pgsynthdata.py db pw1234 \PYGZhy{}H myHost \PYGZhy{}p \PYG{l+m}{8070} \PYGZhy{}U testuser \PYGZhy{}show
+\end{Verbatim}
