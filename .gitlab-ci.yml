@@ -7,9 +7,9 @@ documentation:
   image: "timnn/texlive"
   stage: "build"
   script: [
-      "cd documentation",
-      "pdflatex Seminar.tex"
-      ]
+    "cd documentation",
+    "pdflatex Seminar.tex"
+  ]
   artifacts:
     paths:
       - documentation/Seminar.pdf

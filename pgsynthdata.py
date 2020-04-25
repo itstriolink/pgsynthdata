@@ -1,10 +1,23 @@
 import argparse
+import os
+import random
+import subprocess
+import sys
+from subprocess import Popen
+from typing import Dict
+
 import psycopg2
+from psycopg2 import sql
+from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
+import sql_helper
 
 
-class DatabaseMissingError(Exception):
-    """Raised when '-generate' is given, but not 'DBNAMEGEN'"""
+class DatabaseError(Exception):
+    """Raised when any error happens in the database"""
 
+
+tables_and_columns: Dict[str, Dict[str, str]] = {}
 
 __version__ = '1.0'
 examples = '''How to use pgsynthdata.py:
@@ -24,24 +37,29 @@ examples = '''How to use pgsynthdata.py:
   python pgsynthdata.py --version
   \t-> Show the version of this program and quit'''
 
+DUMP_FILE_PATH = 'schema.dump'
+
 
 def main():
     args = parse_arguments()
 
+    database = args.DBNAMEIN
+    db_name = f'dbname=postgres' if database is None else f'dbname={database}'
+
+    host = '' if args.hostname is None else f' host={args.hostname}'
+    port = '' if args.port is None else f' port={args.port}'
+    user = '' if args.user is None else f' user={args.user}'
+
+    password = f' password={args.password}'
+    parameters = f'{db_name}{host}{port}{user}{password}'
+
     if args.show:
-        database = args.DBNAMEIN
-        db_name = f'dbname={database}'
-        host = '' if args.hostname is None else f' host={args.hostname}'
-        port = '' if args.port is None else f' port={args.port}'
-        user = '' if args.user is None else f' user={args.user}'
-        password = f' password={args.password}'
-        parameters = f'{db_name}{host}{port}{user}{password}'
-        connect(parameters)
+        connect_show(args)
     else:
         if args.DBNAMEGEN is None:
-            raise DatabaseMissingError('When "-generate" is given, the following argument is required: DBNAMEGEN')
+            sys.exit('When "-generate" argument is given, the following argument is required: DBNAMEGEN')
         else:
-            print('todo')
+            connect_gen(args, args.DBNAMEIN, args.DBNAMEGEN, args.owner)
 
 
 def parse_arguments():
@@ -49,7 +67,8 @@ def parse_arguments():
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('-v', '--version', action='version', version=f'pgsynthdata version: {__version__}')
     parser.add_argument('DBNAMEIN', type=str, help='Name of an existing postgres database')
-    parser.add_argument('DBNAMEGEN', type=str, nargs='?', help='Name of database to be created')  # optional, but not if DBNAMEGEN is given
+    parser.add_argument('DBNAMEGEN', type=str, nargs='?',
+                        help='Name of database to be created')  # optional, but not if DBNAMEGEN is given
     parser.add_argument('password', type=str, help='Required user password')
 
     # One of the two options in action_group has to be given, but not both
@@ -66,40 +85,159 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def connect(parameters):
+def connect_show(args):
     connection = None
     try:
-        connection = psycopg2.connect(parameters)
-        cursor = connection.cursor()
-        cursor.execute("""
-    SELECT 
-        nspname AS schemaname,relname as tablename, reltuples::bigint as rowcount,rank() over(order by reltuples desc)
-    FROM pg_class C
-    LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
-    WHERE 
-        nspname NOT IN ('pg_catalog', 'information_schema') AND
-        relkind='r' 
-    ORDER BY tablename;""")
-        result = cursor.fetchall()
-        print(result)
-        for entry in result:
-            table_name = entry[1]
-            cursor.execute(f"""
-    select attname, null_frac, avg_width, n_distinct, most_common_vals, most_common_freqs, histogram_bounds, correlation 
-    from pg_stats 
-    where schemaname not in ('pg_catalog') and tablename = '{table_name}'""")
-            sub_result = cursor.fetchall()
-            print(f'\n -- {table_name} -- \n')
-            print(sub_result)
-        cursor.close()
+        connection = sql_helper.db_connect(args.DBNAMEIN, args.user, args.hostname, args.port, args.password)
     except psycopg2.DatabaseError:
-        print('''Connection failed because of at least one of the following reasons:
-        Could not find specified database or database does not exist
-        User does not exist
-        Wrong password''')
+        sys.exit('''Connection failed because of at least one of the following reasons:
+            Database does not exist
+            User does not exist
+            Wrong password''')
+
+    connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cursor = connection.cursor()
+
+    sql_helper.show_database_stats(cursor)
+    cursor.close()
+
+
+def connect_gen(args, db_name_in, db_name_gen, owner_name=None):
+    connection = None
+    try:
+        connection = sql_helper.db_connect(db_name_in, args.user, args.hostname, args.port, args.password)
+    except psycopg2.DatabaseError:
+        sys.exit('''Connection failed because of at least one of the following reasons:
+            Database does not exist
+            User does not exist
+            Wrong password''')
+
+    connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+    cursor = connection.cursor()
+
+    sql_helper.create_database(connection, cursor, db_name_gen, owner_name)
+
+    try:
+        connection = sql_helper.db_connect(db_name_gen, args.user, args.hostname, args.port, args.password)
+    except psycopg2.DatabaseError:
+        sys.exit(f"Could not connect to the newly created database: {args.DBNAMEGEN}")
+
+    cursor = connection.cursor()
+
+    copy_database_structure(args)
+
+    try:
+        cursor.execute("""
+        SELECT 
+            nspname AS schemaname,relname as tablename, reltuples::bigint as rowcount,rank() over(order by reltuples desc)
+        FROM pg_class C
+        LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
+        WHERE 
+            nspname NOT IN ('pg_catalog', 'information_schema') AND
+            relkind='r' 
+        ORDER BY tablename;""")
+    except psycopg2.DatabaseError:
+        sys.exit('Could not retrieve the generated database\'s table information')
+
+    table_results = cursor.fetchall()
+
+    for table_entry in table_results:
+        table_name = table_entry[1]
+        tables_and_columns[table_name] = {}
+        cursor.execute(f"""SELECT a.attname
+FROM   pg_index i
+JOIN   pg_attribute a ON a.attrelid = i.indrelid
+                     AND a.attnum = ANY(i.indkey)
+WHERE  i.indrelid = '{table_name}'::regclass
+AND    i.indisprimary;""")
+
+        primary_column_result = cursor.fetchone()
+
+        primary_column = None
+        if primary_column_result:
+            primary_column = primary_column_result[0]
+
+        try:
+            cursor.execute("""
+                SELECT 
+                    column_name, data_type
+                FROM   information_schema.columns
+                WHERE  table_name = 'atp_players'
+                ORDER  BY ordinal_position;
+                """)
+        except psycopg2.DatabaseError:
+            sys.exit(f'Could not get columns for the generated "{table_name}" table')
+
+        column_results = cursor.fetchall()
+        for column_entry in column_results:
+            if column_entry[0] != primary_column:
+                tables_and_columns[table_name][column_entry[0]] = column_entry[1]
+
+    column_dict = dict()
+
+    for column in tables_and_columns.get('atp_players'):
+        column_dict[column] = tables_and_columns['atp_players'].get(column)
+
+    for lp in range(100):
+        insert_query = "INSERT INTO {}("
+        insert_query += '{0}{1}'.format(', '.join(column_dict), ') VALUES (')
+
+        column_values = list()
+
+        for column in column_dict:
+            if column_dict.get(column) != 'integer':
+                column_values.append("'{0}'".format(random_word(1)))
+            else:
+                column_values.append("{0}".format(random.randrange(100)))
+
+        insert_query += '{0}{1}'.format(', '.join(column_values), ');')
+
+        cursor.execute(
+            sql.SQL(insert_query).format(
+                sql.Identifier('atp_players')
+            )
+        )
+
+    connection.commit()
+
+    cursor.close()
+    connection.close()
+
+
+def copy_database_structure(args):
+    print(f'Copying {args.DBNAMEGEN} database structure...')
+
+    try:
+        process = Popen(['pg_dump',
+                         '--dbname=postgresql://{}:{}@{}:{}/{}'.format(args.user,
+                                                                       args.password,
+                                                                       'localhost',
+                                                                       '5432',
+                                                                       args.DBNAMEIN),
+                         '-s',
+                         '-Fc',
+                         '-f', DUMP_FILE_PATH
+                         ],
+                        stdout=subprocess.PIPE)
+
+        process.communicate()[0]
+
+        process = Popen(['pg_restore',
+                         '--dbname=postgresql://{}:{}@{}:{}/{}'.format(args.user,
+                                                                       args.password,
+                                                                       'localhost',
+                                                                       '5432',
+                                                                       args.DBNAMEGEN),
+                         DUMP_FILE_PATH],
+                        stdout=subprocess.PIPE
+                        )
+
+        process.communicate()[0]
+    except Exception as error:
+        sys.exit('Database structure could not be copied. Error: {}'.format(error))
     finally:
-        if connection is not None:
-            connection.close()
+        if os.path.exists(DUMP_FILE_PATH):
+            os.remove(DUMP_FILE_PATH)
 
 
 if __name__ == '__main__':
