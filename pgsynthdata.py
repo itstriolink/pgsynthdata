@@ -10,6 +10,7 @@ import psycopg2
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
+import random_helper
 import sql_helper
 
 
@@ -17,7 +18,7 @@ class DatabaseError(Exception):
     """Raised when any error happens in the database"""
 
 
-tables_and_columns: Dict[str, Dict[str, str]] = {}
+tables_and_columns = dict()
 
 __version__ = '1.0'
 examples = '''How to use pgsynthdata.py:
@@ -143,13 +144,13 @@ def connect_gen(args, db_name_in, db_name_gen, owner_name=None):
 
     for table_entry in table_results:
         table_name = table_entry[1]
-        tables_and_columns[table_name] = {}
-        cursor.execute(f"""SELECT a.attname
-FROM   pg_index i
-JOIN   pg_attribute a ON a.attrelid = i.indrelid
-                     AND a.attnum = ANY(i.indkey)
-WHERE  i.indrelid = '{table_name}'::regclass
-AND    i.indisprimary;""")
+        cursor.execute(f"""
+            SELECT a.attname
+            FROM   pg_index i
+            JOIN   pg_attribute a ON a.attrelid = i.indrelid
+                                 AND a.attnum = ANY(i.indkey)
+            WHERE  i.indrelid = '{table_name}'::regclass
+            AND    i.indisprimary;""")
 
         primary_column_result = cursor.fetchone()
 
@@ -160,7 +161,7 @@ AND    i.indisprimary;""")
         try:
             cursor.execute("""
                 SELECT 
-                    column_name, data_type
+                    column_name, data_type, character_maximum_length
                 FROM   information_schema.columns
                 WHERE  table_name = 'atp_players'
                 ORDER  BY ordinal_position;
@@ -169,26 +170,33 @@ AND    i.indisprimary;""")
             sys.exit(f'Could not get columns for the generated "{table_name}" table')
 
         column_results = cursor.fetchall()
+        columns_tuple = list()
+
         for column_entry in column_results:
             if column_entry[0] != primary_column:
-                tables_and_columns[table_name][column_entry[0]] = column_entry[1]
+                columns_tuple.append((column_entry[0], column_entry[1], column_entry[2]))
 
-    column_dict = dict()
+        tables_and_columns[table_name] = columns_tuple
+
+    columns_information = list()
 
     for column in tables_and_columns.get('atp_players'):
-        column_dict[column] = tables_and_columns['atp_players'].get(column)
+        columns_information.append(column[0])
 
     for lp in range(100):
         insert_query = "INSERT INTO {}("
-        insert_query += '{0}{1}'.format(', '.join(column_dict), ') VALUES (')
+        insert_query += '{0}{1}'.format(', '.join(columns_information), ') VALUES (')
 
         column_values = list()
 
-        for column in column_dict:
-            if column_dict.get(column) != 'integer':
-                column_values.append("'{0}'".format(random_word(1)))
+        for column_info in tables_and_columns.get('atp_players'):
+            if column_info[1] != 'integer':
+
+                column_values.append("'{0}'".format(random_helper.random_word(
+                    random.randrange(50 if column_info[2] is None else (column_info[2] + 1))
+                )))
             else:
-                column_values.append("{0}".format(random.randrange(100)))
+                column_values.append("{0}".format(random.randrange(1000)))
 
         insert_query += '{0}{1}'.format(', '.join(column_values), ');')
 
