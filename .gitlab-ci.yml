@@ -7,9 +7,11 @@ documentation:
   image: "timnn/texlive"
   stage: "build"
   script: [
-    "cd documentation",
-    "pdflatex Seminar.tex"
-  ]
+      "apt-get update && apt-get install -y python-pip",
+      "pip install Pygments",
+      "cd documentation",
+      "pdflatex --shell-escape Seminar.tex"
+      ]
   artifacts:
     paths:
       - documentation/Seminar.pdf
