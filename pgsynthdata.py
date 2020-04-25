@@ -1,10 +1,10 @@
 import argparse
+import datetime
 import os
 import random
 import subprocess
 import sys
 from subprocess import Popen
-from typing import Dict
 
 import psycopg2
 from psycopg2 import sql
@@ -159,11 +159,11 @@ def connect_gen(args, db_name_in, db_name_gen, owner_name=None):
             primary_column = primary_column_result[0]
 
         try:
-            cursor.execute("""
+            cursor.execute(f"""
                 SELECT 
                     column_name, data_type, character_maximum_length
                 FROM   information_schema.columns
-                WHERE  table_name = 'atp_players'
+                WHERE  table_name = '{table_name}'
                 ORDER  BY ordinal_position;
                 """)
         except psycopg2.DatabaseError:
@@ -178,33 +178,37 @@ def connect_gen(args, db_name_in, db_name_gen, owner_name=None):
 
         tables_and_columns[table_name] = columns_tuple
 
-    columns_information = list()
+        columns_information = list()
 
-    for column in tables_and_columns.get('atp_players'):
-        columns_information.append(column[0])
+        for column_info in tables_and_columns.get(table_name):
+            columns_information.append(column_info[0])
 
-    for lp in range(100):
-        insert_query = "INSERT INTO {}("
-        insert_query += '{0}{1}'.format(', '.join(columns_information), ') VALUES (')
+        start_date = datetime.date(year=1950, month=1, day=1)
+        end_date = datetime.date(year=2020, month=1, day=1)
 
-        column_values = list()
+        for lp in range(100):
+            insert_query = "INSERT INTO {}("
+            insert_query += '{0}{1}'.format(', '.join(columns_information), ') VALUES (')
 
-        for column_info in tables_and_columns.get('atp_players'):
-            if column_info[1] != 'integer':
+            column_values = list()
 
-                column_values.append("'{0}'".format(random_helper.random_word(
-                    random.randrange(50 if column_info[2] is None else (column_info[2] + 1))
-                )))
-            else:
-                column_values.append("{0}".format(random.randrange(1000)))
+            for column_info in tables_and_columns.get(table_name):
+                if column_info[1] == 'integer' or column_info[1] == 'numeric':
+                    column_values.append("{0}".format(random_helper.random_number(0, 1000)))
+                elif column_info[1] == 'date':
+                    column_values.append("'{0}'".format(random_helper.random_date(start_date, end_date)))
+                else:
+                    column_values.append("'{0}'".format(random_helper.random_word(
+                        random.randrange(50 if column_info[2] is None else (column_info[2] + 1))
+                    )))
 
-        insert_query += '{0}{1}'.format(', '.join(column_values), ');')
+            insert_query += '{0}{1}'.format(', '.join(column_values), ');')
 
-        cursor.execute(
-            sql.SQL(insert_query).format(
-                sql.Identifier('atp_players')
+            cursor.execute(
+                sql.SQL(insert_query).format(
+                    sql.Identifier(table_name)
+                )
             )
-        )
 
     connection.commit()
 
