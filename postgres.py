@@ -12,7 +12,7 @@ def db_connect(dbname, user, host, port, password):
                                 port=port,
                                 password=password)
     except psycopg2.DatabaseError:
-        sys.exit('Could not connect to the database.')
+        sys.exit(f'Could not connect to the "{dbname}" database.')
 
 
 def create_database(connection, cursor, db_name, owner_name):
@@ -31,13 +31,40 @@ def create_database(connection, cursor, db_name, owner_name):
                     sql.Identifier(db_name),
                     sql.Identifier(owner_name)))
 
+            connection.commit()
         except psycopg2.DatabaseError as error:
-            sys.exit('Database could not be created. Error: {}'.format(error))
+            sys.exit('Database "{0}"could not be created. Error: {1}'.format(db_name, error))
     else:
         sys.exit(f'The database you tried to create "{db_name}" already exists. Please specify a new database name.')
 
 
+def truncate_tables(connection, cursor):
+    tables = get_tables(cursor)
+
+    for table_info in tables:
+        table_name = table_info[1]
+
+        try:
+            cursor.execute(f"""TRUNCATE TABLE {table_name};""")
+        except psycopg2.DatabaseError as error:
+            sys.exit('Could not truncate table "{0}". Error: {1}'.format(table_name, error))
+
+        connection.commit()
+
+
 def show_database_stats(cursor):
+    tables = get_tables(cursor)
+    print(tables)
+
+    for table_info in tables:
+        table_name = table_info[1]
+        sub_result = get_table_stats(cursor, table_name)
+
+        print(f'\n -- {table_name} -- \n')
+        print(sub_result)
+
+
+def get_tables(cursor):
     try:
         cursor.execute("""
         SELECT 
@@ -48,17 +75,10 @@ def show_database_stats(cursor):
             nspname NOT IN ('pg_catalog', 'information_schema') AND
             relkind='r' 
         ORDER BY tablename;""")
+
+        return cursor.fetchall()
     except psycopg2.DatabaseError:
         sys.exit('Could not retrieve the database\'s table information')
-
-    result = cursor.fetchall()
-    print(result)
-    for entry in result:
-        table_name = entry[1]
-        sub_result = get_table_stats(cursor, table_name)
-
-        print(f'\n -- {table_name} -- \n')
-        print(sub_result)
 
 
 def get_table_stats(cursor, table_name):

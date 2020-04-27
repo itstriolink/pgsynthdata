@@ -82,6 +82,11 @@ def parse_arguments():
     action_group.add_argument('-generate', '--generate', action='store_true',
                               help='If given, generates new synthesized data to database DBNAMEGEN')
 
+    parser.add_argument('-r', '--recreate', action='store_true',
+                        help="Recreate the DBNAMEGEN database with the same schema as DBNAMEIN.")
+    parser.add_argument('-tables', '--tables', type=str,
+                        help='Only generate data for specific tables, separated by a comma')
+
     parser.add_argument('-O', '--owner', type=str, help='Owner of the database, default: same as user')
     parser.add_argument('-H', '--hostname', type=str, help='Specifies the host name, default: localhost')
     parser.add_argument('-p', '--port', type=int, help='Specifies the TCP/IP port, default: 5432')
@@ -109,26 +114,42 @@ def show(args):
 def generate(args, db_name_in, db_name_gen, owner_name=None):
     connection = None
     try:
-        connection = postgres.db_connect(db_name_in, args.user, args.hostname, args.port, args.password)
+        connection = postgres.db_connect(args.DBNAMEIN, args.user, args.hostname, args.port, args.password)
     except psycopg2.DatabaseError:
         sys.exit('''Connection failed because of at least one of the following reasons:
-            Database does not exist
-            User does not exist
-            Wrong password''')
+                Database does not exist
+                User does not exist
+                Wrong password''')
 
     connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
     cursor = connection.cursor()
 
-    postgres.create_database(connection, cursor, db_name_gen, owner_name)
+    if args.recreate:
+        postgres.create_database(connection, cursor, db_name_gen, owner_name)
+        copy_database_structure(args)
+    else:
+        connection = postgres.db_connect(db_name_gen, args.user, args.hostname, args.port, args.password)
+        cursor = connection.cursor()
 
-    copy_database_structure(args)
+        postgres.truncate_tables(connection, cursor)
+
+    connection = postgres.db_connect(db_name_in, args.user, args.hostname, args.port, args.password)
 
     table_results = postgres.get_table_information(cursor, generated=True)
+
+    tables_list = None
+    if args.tables is not None:
+        tables_list = args.tables.split(",")
+        tables_list = [table.strip(' ') for table in tables_list]
 
     insert_dict = dict()
     for table_entry in table_results:
         cursor = connection.cursor()
         table_name = table_entry[1]
+
+        if tables_list is not None:
+            if table_name not in tables_list:
+                continue
 
         primary_column_result = postgres.get_table_primary_key(cursor, table_name, generated=True)
         primary_column = None
@@ -170,7 +191,7 @@ def generate(args, db_name_in, db_name_gen, owner_name=None):
             column_names.append(column_name)
 
         insert_query = ""
-        for lp in range(100):
+        for _ in range(100):
             insert_query += "INSERT INTO {table_name}("
             insert_query += '{0}{1}'.format(', '.join(column_names), ') VALUES (')
 
@@ -189,17 +210,11 @@ def generate(args, db_name_in, db_name_gen, owner_name=None):
                         random.randrange(50 if max_length is None else (max_length + 1))
                     )))
 
-            insert_query += '{0}{1}'.format(', '.join(column_values), ');\n')
+            insert_query += '{0}{1}'.format(', '.join(column_values), ');')
 
         insert_dict[table_name] = insert_query
 
-    try:
-        connection = postgres.db_connect(db_name_gen, args.user, args.hostname, args.port, args.password)
-    except psycopg2.DatabaseError:
-        sys.exit(f"Could not connect to the newly created database: {args.DBNAMEGEN}")
-
-    # with open('description.json', 'w') as file:
-    #   file.write(json.dumps(table_information, indent=4))
+    connection = postgres.db_connect(db_name_gen, args.user, args.hostname, args.port, args.password)
 
     cursor = connection.cursor()
     for table_name, insert_query in insert_dict.items():
@@ -208,9 +223,9 @@ def generate(args, db_name_in, db_name_gen, owner_name=None):
                 table_name=sql.Identifier(table_name)
             )
         )
+        connection.commit()
 
-    sys.stdout.write(f"Successfully generated data into the new \"{db_name_gen}\" database.")
-    connection.commit()
+    sys.stdout.write(f"Successfully generated the synthetic data into the \"{db_name_gen}\" database.")
 
     cursor.close()
     connection.close()
