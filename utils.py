@@ -5,6 +5,9 @@ import radar
 
 
 def random_word(length):
+    if length == 0:
+        length += 1
+
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(length))
 

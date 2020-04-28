@@ -3,6 +3,31 @@ import sys
 import psycopg2
 from psycopg2 import sql
 
+NUMERIC_TYPES = {
+    'smallint',
+    'integer',
+    'bigint',
+    'decimal',
+    'numeric',
+    'real',
+    'double precision',
+    'smallserial',
+    'serial',
+    'bigserial'
+}
+
+DATE_TYPES = {
+    'date',
+    'timestamp',
+    'timestamp without time zone',
+}
+
+TIME_TYPES = {
+    'time',
+    'time without time zone',
+    'time with time zone'
+}
+
 
 def db_connect(dbname, user, host, port, password):
     try:
@@ -91,23 +116,6 @@ def get_table_stats(cursor, table_name):
         return cursor.fetchall()
     except psycopg2.DatabaseError:
         sys.exit(f'Could not get statistics for the "{table_name}" table')
-
-
-def get_table_information(cursor, generated=False):
-    try:
-        cursor.execute("""
-            SELECT 
-                nspname AS schemaname,relname as tablename, reltuples::bigint as rowcount,rank() over(order by reltuples desc)
-            FROM pg_class C
-            LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
-            WHERE 
-                nspname NOT IN ('pg_catalog', 'information_schema') AND
-                relkind='r' 
-            ORDER BY tablename;""")
-
-        return cursor.fetchall()
-    except psycopg2.DatabaseError:
-        sys.exit('Could not get table information for the {0}database'.format("generated " if generated else ""))
 
 
 def get_column_information(cursor, table_name, generated=False):

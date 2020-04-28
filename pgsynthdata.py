@@ -135,7 +135,7 @@ def generate(args, db_name_in, db_name_gen, owner_name=None):
 
     connection = postgres.db_connect(db_name_in, args.user, args.hostname, args.port, args.password)
 
-    table_results = postgres.get_table_information(cursor, generated=True)
+    table_results = postgres.get_tables(cursor)
 
     tables_list = None
     if args.tables is not None:
@@ -192,18 +192,17 @@ def generate(args, db_name_in, db_name_gen, owner_name=None):
 
         insert_query = ""
         for _ in range(100):
+            column_values = list()
             insert_query += "INSERT INTO {table_name}("
             insert_query += '{0}{1}'.format(', '.join(column_names), ') VALUES (')
-
-            column_values = list()
 
             for column_info in table_information[table_name]["column_information"].values():
                 data_type = column_info.get("data_type")
                 max_length = column_info.get("max_length")
 
-                if data_type == 'integer' or data_type == 'numeric':
-                    column_values.append("{0}".format(utils.random_number(0, 1000)))
-                elif data_type == 'date':
+                if data_type in postgres.NUMERIC_TYPES:
+                    column_values.append("{0}".format(utils.random_number(1, 1000)))
+                elif data_type in postgres.DATE_TYPES:
                     column_values.append("'{0}'".format(utils.random_date(START_DATE, END_DATE)))
                 else:
                     column_values.append("'{0}'".format(utils.random_word(
@@ -217,6 +216,7 @@ def generate(args, db_name_in, db_name_gen, owner_name=None):
     connection = postgres.db_connect(db_name_gen, args.user, args.hostname, args.port, args.password)
 
     cursor = connection.cursor()
+
     for table_name, insert_query in insert_dict.items():
         cursor.execute(
             sql.SQL(insert_query).format(
