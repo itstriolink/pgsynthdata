@@ -1,5 +1,5 @@
-\chapter{Implementation}
-\label{ch:implementation}
+\chapter{The pgsynthdata Tool}
+\label{ch:pgsynthdata_tool}
 \section{Overview}
 The tool is a single lightweight Python script, executable from the shell terminal. The tool first connects to an existing PostgreSQL database (based on the passed arguments) and then based on whether \mintinline{bash}{-show} or \mintinline{bash}{-generate} arguments were passed, with \mintinline{bash}{-show} being the default one. The tool also accepts database connection parameters (all optional) such as \mintinline{bash}{-H, -P, -U} for connecting to the desired database server.\\
 The \mintinline{bash}{-show} argument (which is the default one) will show the configuration of the database and the \mintinline{bash}{-generate} argument generates the synthesized data to the database with the name \mintinline{bash}{DBNAMEGEN}, which is one of the required arguments for this tool.\\
@@ -9,6 +9,8 @@ This tool is written and coded using the Python programming language.\\
 It uses various Python libraries that are used for: argument parsing, various mathematical functions, making the connection to the PostgreSQL server easier etc.\\
 It is a single python script that is to be executed using the shell terminal. It requires some arguments/parameters initially in order to evaluate the PostgreSQL server it needs to connect to, what database it relies on for generating the synthetic data and also the database where the synthetic data will be generated on.\\
 To be continued...
+\subsection{Design Decisions}
+\lipsum[2-3]
 \section{Tool Usage}
 The tool is very straightforward to use. It contains a single Python script, with all the logic of connecting to the database and showing/generating the data in a single script. It is a script, designed to be executed from the terminal shell using the python command.\\
 The tool is somehow split into two parts. The first part is the database connection part, which, based on the arguments given for the database and the PostgreSQL connection parameters, tries to connect to that database instance in the server. If everything there is successful, the tool then continues with the data synthesis part.\\
