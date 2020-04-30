@@ -40,6 +40,6 @@ password *pw1234*
 Author
 ------
 
-Plugin is written by [Labian Gashi](https://gitlab.com/labiangashi).
+Tool is written by [Labian Gashi](https://gitlab.com/labiangashi).
 
 Feedback is welcome.
