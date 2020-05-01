@@ -6,6 +6,13 @@ A lightweight tool written in Python that teams up with PostgreSQL in order to g
 
 The *Tennis_ATP* dataset can be found inside resources/ and can be set-up very easily using the *import.bat* file (if on Windows) or importing the *.csv* files directly into Postgres (which should be pretty straight-forward).
 
+Installation
+------
+* Clone the repository into your desired directory.
+* Run *pip install -r requirements.txt* to install all the required libraries/dependencies
+* Run the tool using the terminal shell while having the PostgreSQL server up and running
+
+
 Usage
 ------
 Tool arguments:
