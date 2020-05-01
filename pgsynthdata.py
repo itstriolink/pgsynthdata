@@ -82,6 +82,8 @@ def parse_arguments():
     action_group.add_argument('-generate', '--generate', action='store_true',
                               help='If given, generates new synthesized data to database DBNAMEGEN')
 
+    parser.add_argument('-mf', '--mf', type = float,
+                        help ='Multiplication factor (mf) for the generated synthesized data (default: 1.0)')
     parser.add_argument('-r', '--recreate', action='store_true',
                         help="Recreate the DBNAMEGEN database with the same schema as DBNAMEIN.")
     parser.add_argument('-tables', '--tables', type=str,
