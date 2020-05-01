@@ -1,2 +1,63 @@
 \chapter{Usage of Tool}
-\lipsum[5-7]
+\textbf{Tool usage:} \newline
+\mintinline{bash}{pgsynthdata [OPTIONS]... DBNAMEIN [DBNAMEGEN]} \\
+\newline
+\section{Options}
+\textbf{Tool options:}
+\begin{itemize}
+	\item \mintinline{bash}{DBNAMEGEN} - Name of the database to be created
+	\item \mintinline{bash}{-show/--show} - Shows database stats (default)
+	\item \mintinline{bash}{-generate/--generate} - Generates new synthetic data to database \textit{DBNAMEGEN}
+	\item \mintinline{bash}{-mf/--mf} - Multiplication factor for thegenerated synthetic data (default: 1.0)
+	\item \mintinline{bash}{-tables/--tables} - Name(s) of table(s) to be filled, separated with ',', ignoring other tables (default: fill all tables)
+	\item \mintinline{bash}{-r/--recreate} - (Re-)create new DBNAMEGEN and schema (default: don't recreate database/schema, just truncate the tables)
+	\item \mintinline{bash}{-O/--owner} - Owner of new database (default: same as user)
+	\item \mintinline{bash}{-v/--version} - Show version information, then quit
+	\item \mintinline{bash}{-h/--help} - Show tool help, then quit
+	\newline
+\end{itemize}
+\textbf{Connection options:}
+\begin{itemize}
+	\item \mintinline{bash}{DBNAMEIN} - Name of the existing database to connect to
+	\item \mintinline{bash}{-H/--hostname} - Name of the PostgreSQL server (default: \textit{localhost})
+	\item \mintinline{bash}{-P/--port} - Port of the PostgreSQL server (default: \textit{5432})
+	\item \mintinline{bash}{-U/--user} - PostgreSQL server username
+	\newline
+\end{itemize}
+\section{Usage Examples}
+\textbf{Some usage examples:}
+\begin{itemize}
+	\item \mintinline{bash}{python pgsynthdata.py test postgres -show}
+	\begin{itemize}
+		\item Connects to database \textit{test}, host=\textit{localhost}, port=\textit{5432}, default user with password \textit{postgres}
+		\item Shows statistics of the database \textit{test}
+	\end{itemize}
+	\item \mintinline{bash}{python pgsynthdata.py db pw1234 -H myHost -p 8070 -U testuser -show}
+	\begin{itemize}
+		\item Connects to database \textit{db}, host=\textit{myHost}, port=\textit{8070}, user=\textit{testuser} with password \textit{pw1234}
+		\item Shows statistics of the database \textit{db}
+	\end{itemize}
+	\item \mintinline[breaklines]{bash}{python pgsynthdata.py dbin dbgen pw1234 -H myHost -U testuser -generate}
+	\begin{itemize}
+		\item Connects to database \textit{dbin}, host=\textit{myHost}, port=\textit{5432}, user=\textit{testuser} with password \textit{pw1234}
+		\item Truncates tables of \textit{dbgen} and generates synthetic data into them
+	\end{itemize}
+	\item \mintinline{bash}{python pgsynthdata.py dbin dbgencreate pw123 -U myUser -generate -r}
+	\begin{itemize}
+		\item Connects to database \textit{dbin}, host=\textit{localhost}, port=\textit{5432}, user=\textit{myUser} with password \textit{pw123}
+		\item Creates new database \textit{dbgencreate} with the same schema as \textit{dbin} and generates synthetic data into it
+	\end{itemize}
+	\item \mintinline[breaklines]{bash}{python pgsynthdata.py dbin dbgencreate pw123 -U myUser -generate -tables myTable1, myTable2}
+	\begin{itemize}
+		\item Connects to database \textit{dbin}, host=\textit{localhost}, port=\textit{5432}, user=\textit{myUser} with password \textit{pw123}
+		\item Only truncates the \textit{myTable1} and \textit{myTable2} tables and generates synthetic into them
+	\end{itemize}
+	\item \mintinline{bash}{python pgsynthdata.py --version}
+	\begin{itemize}
+		\item Shows the version of this tool
+	\end{itemize}
+	\item \mintinline{bash}{python pgsynthdata.py --help}
+	\begin{itemize}
+		\item Shows the help information for this tool
+	\end{itemize}
+\end{itemize}
