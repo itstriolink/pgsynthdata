@@ -1,3 +1,0 @@
-\begin{Verbatim}[commandchars=\\\{\}]
-python pgsynthdata.py dbin dbgen pw1234 \PYGZhy{}H myHost \PYGZhy{}p \PYG{l+m}{8070} \PYGZhy{}U testuser \PYGZhy{}generate
-\end{Verbatim}

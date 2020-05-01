@@ -1,3 +1,0 @@
-\begin{Verbatim}[commandchars=\\\{\}]
-pgsynthdata \PYG{o}{[}OPTIONS\PYG{o}{]}... DBNAMEIN \PYG{o}{[}DBNAMEGEN\PYG{o}{]}
-\end{Verbatim}
