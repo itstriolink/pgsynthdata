@@ -51,8 +51,7 @@ generates synthetic data into it
 * **python pgsynthdata.py dbin dbgencreate pw123 -U myUser -generate -tables myTable1, myTable2**
   * Connects to database *dbin*, host=*localhost*, port=*5432*, user=*myUser* with
 password *pw123*
-  * Only truncates the *myTable1* and *myTable2* tables and generates synthetic
-into them
+  * Only truncates the *myTable1* and *myTable2* tables and generates synthetic data into them
 
 
 Author
