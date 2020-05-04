@@ -10,7 +10,7 @@ documentation:
       "apt-get update && apt-get install -y python-pip",
       "pip install Pygments",
       "cd documentation",
-      "pdflatex --shell-escape Seminar.tex"
+      "pdflatex -synctex=1 --shell-escape -interaction=nonstopmode Seminar.tex"
       ]
   artifacts:
     paths:

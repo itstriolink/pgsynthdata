@@ -1,8 +1,17 @@
-# Synthetic Data Generation for Databases
+# Pure Synthetic Data Generation with a PostgreSQL and Python-based Tool.
 
-Pure Synthetic Data Generation with a PostgreSQL and Python-based Tool
+Description
+------
+A lightweight tool written in Python that teams up with PostgreSQL in order to generate fully synthetic data that seem as realistic as possible.
 
 The *Tennis_ATP* dataset can be found inside resources/ and can be set-up very easily using the *import.bat* file (if on Windows) or importing the *.csv* files directly into Postgres (which should be pretty straight-forward).
+
+Installation
+------
+* Clone the repository into your desired directory.
+* Run *pip install -r requirements.txt* to install all the required libraries/dependencies
+* Run the tool using the terminal shell while having the PostgreSQL server up and running
+
 
 Usage
 ------
@@ -42,8 +51,7 @@ generates synthetic data into it
 * **python pgsynthdata.py dbin dbgencreate pw123 -U myUser -generate -tables myTable1, myTable2**
   * Connects to database *dbin*, host=*localhost*, port=*5432*, user=*myUser* with
 password *pw123*
-  * Only truncates the *myTable1* and *myTable2* tables and generates synthetic
-into them
+  * Only truncates the *myTable1* and *myTable2* tables and generates synthetic data into them
 
 
 Author
