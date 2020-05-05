@@ -202,14 +202,18 @@ def generate(args, db_name_in, db_name_gen, owner_name=None):
                 data_type = column_info.get("data_type")
                 max_length = column_info.get("max_length")
 
-                if data_type in postgres.NUMERIC_TYPES:
+                if data_type in postgres.DataTypes.NUMERIC_TYPES:
                     column_values.append("{0}".format(utils.random_number(1, 1000)))
-                elif data_type in postgres.DATE_TYPES:
+                elif data_type in postgres.DataTypes.DATE_TYPES:
                     column_values.append("'{0}'".format(utils.random_date(START_DATE, END_DATE)))
-                else:
+                elif data_type in postgres.DataTypes.BOOLEAN_TYPES:
+                    column_values.append("{0}".format(utils.random_boolean()))
+                elif data_type in postgres.DataTypes.VARCHAR_TYPES:
                     column_values.append("'{0}'".format(utils.random_word(
                         random.randrange(50 if max_length is None else (max_length + 1))
                     )))
+                else:
+                    sys.stdout.write(f"The \"{data_type}\" data type is not supported.")
 
             insert_query += '{0}{1}'.format(', '.join(column_values), ');')
 

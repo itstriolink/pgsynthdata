@@ -3,30 +3,29 @@ import sys
 import psycopg2
 from psycopg2 import sql
 
-NUMERIC_TYPES = {
-    'smallint',
-    'integer',
-    'bigint',
-    'decimal',
-    'numeric',
-    'real',
-    'double precision',
-    'smallserial',
-    'serial',
-    'bigserial'
-}
 
-DATE_TYPES = {
-    'date',
-    'timestamp',
-    'timestamp without time zone',
-}
+class DataTypes:
+    VARCHAR_TYPES = {
+        'character varying'
+    }
 
-TIME_TYPES = {
-    'time',
-    'time without time zone',
-    'time with time zone'
-}
+    NUMERIC_TYPES = {
+        'smallint',
+        'integer',
+        'bigint',
+        'decimal',
+        'numeric'
+    }
+
+    DATE_TYPES = {
+        'date',
+        'timestamp'
+    }
+
+    BOOLEAN_TYPES = {
+        'boolean',
+        'bool'
+    }
 
 
 def db_connect(dbname, user, host, port, password):

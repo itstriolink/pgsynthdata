@@ -18,3 +18,12 @@ def random_date(start_date, end_date):
 
 def random_number(start, end):
     return random.randint(start, end)
+
+
+def random_boolean():
+    boolean = random.choice([True, False])
+
+    if boolean:
+        return 'true'
+    else:
+        return 'false'
