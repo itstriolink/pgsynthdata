@@ -27,18 +27,6 @@ class DataTypes:
         'bool'
     }
 
-
-def db_connect(dbname, user, host, port, password):
-    try:
-        return psycopg2.connect(dbname=dbname,
-                                user=user,
-                                host=host,
-                                port=port,
-                                password=password)
-    except psycopg2.DatabaseError:
-        sys.exit(f'Could not connect to the "{dbname}" database.')
-
-
 def create_database(connection, cursor, db_name, owner_name):
     print(f'Creating {db_name} database...')
 

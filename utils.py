@@ -21,9 +21,9 @@ def random_number(start, end):
 
 
 def random_boolean():
-    boolean = random.choice([True, False])
+    random_boolean = random.choice([True, False])
 
-    if boolean:
+    if random_boolean:
         return 'true'
     else:
         return 'false'
