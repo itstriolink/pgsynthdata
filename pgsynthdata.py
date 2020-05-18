@@ -71,7 +71,7 @@ def main():
                 cursor = connection.cursor()
 
                 generate(connection, cursor, args, args.DBNAMEIN, args.DBNAMEGEN, args.owner)
-            except psycopg2.DatabaseError as db_error:
+            except psycopg2.DatabaseError:
                 sys.exit('''Connection failed because of at least one of the following reasons:
                         Database does not exist
                         User does not exist

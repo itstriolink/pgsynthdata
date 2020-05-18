@@ -27,6 +27,7 @@ class DataTypes:
         'bool'
     }
 
+
 def create_database(connection, cursor, db_name, owner_name):
     print(f'Creating {db_name} database...')
 
