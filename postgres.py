@@ -46,7 +46,7 @@ def create_database(connection, cursor, db_name, owner_name):
 
             connection.commit()
         except psycopg2.DatabaseError as error:
-            sys.exit('Database "{0}"could not be created. Error: {1}'.format(db_name, error))
+            sys.exit('Database "{0}" could not be created. Error: {1}'.format(db_name, error))
     else:
         sys.exit(f'The database you tried to create "{db_name}" already exists. Please specify a new database name.')
 
@@ -106,7 +106,7 @@ def get_table_stats(cursor, table_name):
         sys.exit(f'Could not get statistics for the "{table_name}" table')
 
 
-def get_column_information(cursor, table_name, generated=False):
+def get_column_information(cursor, table_name):
     try:
         cursor.execute(f"""
             SELECT 
@@ -118,10 +118,10 @@ def get_column_information(cursor, table_name, generated=False):
 
         return cursor.fetchall()
     except psycopg2.DatabaseError:
-        sys.exit('Could not get columns for the {0}"{1}" table'.format("generated " if generated else "", table_name))
+        sys.exit(f'Could not get columns for the "{table_name}" table.')
 
 
-def get_table_primary_key(cursor, table_name, generated=False):
+def get_table_primary_key(cursor, table_name):
     try:
         cursor.execute(f"""
                     SELECT a.attname
@@ -133,6 +133,4 @@ def get_table_primary_key(cursor, table_name, generated=False):
 
         return cursor.fetchone()
     except psycopg2.DatabaseError:
-        sys.exit(
-            'Could not get the primary key information for the {0}"{1}" table'.format("generated " if generated else "",
-                                                                                      table_name))
+        sys.exit(f'Could not get the primary key information for the"{table_name}" table.')

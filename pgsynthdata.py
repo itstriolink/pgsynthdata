@@ -44,13 +44,6 @@ def main():
     args = parse_arguments()
 
     database = args.DBNAMEIN
-    db_name = f'dbname=postgres' if database is None else f'dbname={database}'
-
-    host = '' if args.hostname is None else f' host={args.hostname}'
-    port = '' if args.port is None else f' port={args.port}'
-    user = '' if args.user is None else f' user={args.user}'
-
-    password = f' password={args.password}'
 
     if args.show:
         show(args)
@@ -70,7 +63,7 @@ def main():
                 connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
                 cursor = connection.cursor()
 
-                generate(connection, cursor, args, args.DBNAMEIN, args.DBNAMEGEN, args.owner)
+                generate(connection, cursor, args, args.DBNAMEGEN, args.owner)
             except psycopg2.DatabaseError:
                 sys.exit('''Connection failed because of at least one of the following reasons:
                         Database does not exist
@@ -124,32 +117,12 @@ def show(args):
     cursor.close()
 
 
-def generate(connection, cursor, args, db_name_in, db_name_gen, owner_name=None):
+def generate(connection, cursor, args, db_name_gen, owner_name):
     if args.recreate:
         postgres.create_database(connection, cursor, db_name_gen, owner_name)
         copy_database_structure(args)
     else:
-        try:
-            connection = psycopg2.connect(dbname=db_name_gen,
-                                          user=args.user,
-                                          host=args.hostname,
-                                          port=args.port,
-                                          password=args.password)
-        except psycopg2.DatabaseError:
-            sys.exit(f'Could not connect to the \"{db_name_gen}\" database.')
-
-        cursor = connection.cursor()
-
-        postgres.truncate_tables(connection, cursor)
-
-    connection = psycopg2.connect(dbname=db_name_in,
-                                  user=args.user,
-                                  host=args.hostname,
-                                  port=args.port,
-                                  password=args.password)
-    cursor = connection.cursor()
-
-    data_generator.generate(args, connection, cursor, db_name_in, db_name_gen)
+        data_generator.generate(args)
 
     cursor.close()
     connection.close()

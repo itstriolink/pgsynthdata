@@ -27,3 +27,7 @@ def random_boolean():
         return 'true'
     else:
         return 'false'
+
+
+def random_choice(list):
+    return random.choice(list)
