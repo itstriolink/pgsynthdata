@@ -29,7 +29,7 @@ class DataTypes:
 
 
 def create_database(connection, cursor, db_name, owner_name):
-    print(f'Creating {db_name} database...')
+    print(f'Creating the "{db_name}" database...')
 
     cursor.execute(f"SELECT 1 FROM pg_catalog.pg_database WHERE datname = '{db_name}'")
     exists = cursor.fetchone()

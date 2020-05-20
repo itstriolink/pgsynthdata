@@ -43,8 +43,6 @@ data_generator = DataGenerator()
 def main():
     args = parse_arguments()
 
-    database = args.DBNAMEIN
-
     if args.show:
         show(args)
     else:
@@ -105,16 +103,27 @@ def parse_arguments():
 
 
 def show(args):
-    connection = psycopg2.connect(dbname=args.DB_NAME_IN,
-                                  user=args.user,
-                                  host=args.hostname,
-                                  port=args.port,
-                                  password=args.password)
+    connection = None
+    try:
+        connection = psycopg2.connect(dbname=args.DBNAMEIN,
+                                      user=args.user,
+                                      host=args.hostname,
+                                      port=args.port,
+                                      password=args.password)
 
-    cursor = connection.cursor()
+        cursor = connection.cursor()
 
-    postgres.show_database_stats(cursor)
-    cursor.close()
+        postgres.show_database_stats(cursor)
+        cursor.close()
+
+    except psycopg2.DatabaseError:
+        sys.exit('''Connection failed because of at least one of the following reasons:
+                    Database does not exist
+                    User does not exist
+                    Wrong password''')
+    finally:
+        if connection is not None:
+            connection.close()
 
 
 def generate(connection, cursor, args, db_name_gen, owner_name):
@@ -125,11 +134,10 @@ def generate(connection, cursor, args, db_name_gen, owner_name):
     data_generator.generate(args)
 
     cursor.close()
-    connection.close()
 
 
 def copy_database_structure(args):
-    print(f'Copying {args.DBNAMEGEN} database structure...')
+    print(f'Copying the "{args.DBNAMEGEN}" database structure...')
 
     try:
         process = Popen(['pg_dump',

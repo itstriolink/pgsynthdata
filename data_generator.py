@@ -37,7 +37,7 @@ class DataGenerator:
                                           port=args.port,
                                           password=args.password)
         except psycopg2.DatabaseError:
-            sys.exit(f'Could not connect to the \"{args.DBNAMEIN}" database.')
+            sys.exit(f'Could not connect to the "{args.DBNAMEIN}" database.')
 
         cursor = connection.cursor()
 
@@ -101,10 +101,10 @@ class DataGenerator:
                     connection.commit()
             except psycopg2.DatabaseError as db_error:
                 sys.stdout.write(
-                    f"An error occurred while inserting data into the \"{table_name}\" table. Error description: {db_error}.\n")
+                    f'An error occurred while inserting data into the "{table_name}" table. Error description: {db_error}.\n')
                 connection.rollback()
 
-        sys.stdout.write(f"Successfully generated the synthetic data into the \"{args.DBNAMEGEN}\" database.")
+        sys.stdout.write(f'Successfully generated the synthetic data into the "{args.DBNAMEGEN} database.')
 
     def fill_columns_dict(self, table_name, column_results, primary_column):
         for column_entry in column_results:
@@ -122,9 +122,22 @@ class DataGenerator:
             stats_dict["null_frac"] = stats_entry[1]
             stats_dict["avg_width"] = stats_entry[2]
             stats_dict["n_distinct"] = stats_entry[3]
-            stats_dict["most_common_vals"] = stats_entry[4]
+
+            most_common_values = stats_entry[4]
+            if most_common_values is not None:
+                most_common_values = most_common_values.strip("{}").split(",")
+                most_common_values = [value.strip('"').replace("'", "''") for value in most_common_values]
+
+            stats_dict["most_common_vals"] = most_common_values
+
             stats_dict["most_common_freqs"] = stats_entry[5]
-            stats_dict["histogram_bounds"] = stats_entry[6]
+
+            histogram_bounds = stats_entry[6]
+            if histogram_bounds is not None:
+                histogram_bounds = histogram_bounds.strip("{}").split(",")
+                histogram_bounds = [bound.strip('"').replace("'", "''") for bound in histogram_bounds]
+
+            stats_dict["histogram_bounds"] = histogram_bounds
             stats_dict["correlation"] = stats_entry[7]
             self.table_information[table_name]["pg_stats"][stats_entry[0]] = stats_dict
 
@@ -151,25 +164,27 @@ class DataGenerator:
 
                 most_common_values = None
                 histogram_bounds = None
+                most_common_freqs = None
+
                 if column_stats:
                     if column_stats["most_common_vals"]:
-                        most_common_values = column_stats["most_common_vals"].strip("{}").split(",")
-                        most_common_values = [value.strip('"').replace("'", "''") for value in most_common_values]
+                        most_common_values = column_stats["most_common_vals"]
+                        most_common_freqs = column_stats["most_common_freqs"]
 
                     if column_stats["histogram_bounds"]:
-                        histogram_bounds = column_stats["histogram_bounds"].strip("{}").split(",")
-                        histogram_bounds = [bound.strip('"').replace("'", "''") for bound in histogram_bounds]
+                        histogram_bounds = column_stats["histogram_bounds"]
 
                 if data_type in postgres.DataTypes.NUMERIC_TYPES:
                     if most_common_values:
-                        column_values.append("{0}".format(utils.random_choice(most_common_values)))
-                    elif histogram_bounds:
+                        column_values.append("{0}".format(utils.random_choices(most_common_values, most_common_freqs)))
+                    elif most_common_freqs:
                         column_values.append("{0}".format(utils.random_choice(histogram_bounds)))
                     else:
                         column_values.append("{0}".format(utils.random_number(1, 1000)))
                 elif data_type in postgres.DataTypes.DATE_TYPES:
                     if most_common_values:
-                        column_values.append("'{0}'".format(utils.random_choice(most_common_values)))
+                        column_values.append(
+                            "'{0}'".format(utils.random_choices(most_common_values, most_common_freqs)))
                     elif histogram_bounds:
                         column_values.append("'{0}'".format(utils.random_choice(histogram_bounds)))
                     else:
@@ -178,7 +193,8 @@ class DataGenerator:
                     column_values.append("{0}".format(utils.random_boolean()))
                 elif data_type in postgres.DataTypes.VARCHAR_TYPES:
                     if most_common_values:
-                        column_values.append("'{0}'".format(utils.random_choice(most_common_values)))
+                        column_values.append(
+                            "'{0}'".format(utils.random_choices(most_common_values, most_common_freqs)))
                     elif histogram_bounds:
                         column_values.append("'{0}'".format(utils.random_choice(histogram_bounds)))
                     else:

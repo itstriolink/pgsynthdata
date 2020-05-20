@@ -31,3 +31,10 @@ def random_boolean():
 
 def random_choice(list):
     return random.choice(list)
+
+
+def random_choices(list, weights, k=1):
+    if k == 1:
+        return random.choices(list, weights=weights, k=k)[0]
+    else:
+        return random.choices(list, weights=weights, k=k)
