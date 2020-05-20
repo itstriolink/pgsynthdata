@@ -41,6 +41,8 @@ class DataGenerator:
 
         cursor = connection.cursor()
 
+        print(f'Generating synthetic data into the "{args.DBNAMEGEN}" database...')
+
         table_results = postgres.get_tables(cursor)
 
         tables_list = None
@@ -99,7 +101,7 @@ class DataGenerator:
                     connection.commit()
             except psycopg2.DatabaseError as db_error:
                 sys.stdout.write(
-                    f"An error occurred while inserting data into the \"{table_name}\" table. Error: {db_error}.\n")
+                    f"An error occurred while inserting data into the \"{table_name}\" table. Error description: {db_error}.\n")
                 connection.rollback()
 
         sys.stdout.write(f"Successfully generated the synthetic data into the \"{args.DBNAMEGEN}\" database.")
@@ -178,7 +180,7 @@ class DataGenerator:
                     if most_common_values:
                         column_values.append("'{0}'".format(utils.random_choice(most_common_values)))
                     elif histogram_bounds:
-                        column_values.append("{0}".format(utils.random_choice(histogram_bounds)))
+                        column_values.append("'{0}'".format(utils.random_choice(histogram_bounds)))
                     else:
                         random_length = random.randrange(50 if max_length is None else (max_length + 1))
                         column_values.append("'{0}'".format(utils.random_word(random_length)))

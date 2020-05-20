@@ -89,7 +89,7 @@ def parse_arguments():
     action_group.add_argument('-generate', '--generate', action='store_true',
                               help='If given, generates new synthesized data to database DBNAMEGEN')
 
-    parser.add_argument('-mf', '--mf', type=float,
+    parser.add_argument('-mf', '--mf', type=float, default=1.0,
                         help='Multiplication factor (mf) for the generated synthesized data (default: 1.0)')
     parser.add_argument('-r', '--recreate', action='store_true',
                         help="Recreate the DBNAMEGEN database with the same schema as DBNAMEIN.")
@@ -121,8 +121,8 @@ def generate(connection, cursor, args, db_name_gen, owner_name):
     if args.recreate:
         postgres.create_database(connection, cursor, db_name_gen, owner_name)
         copy_database_structure(args)
-    else:
-        data_generator.generate(args)
+
+    data_generator.generate(args)
 
     cursor.close()
     connection.close()
