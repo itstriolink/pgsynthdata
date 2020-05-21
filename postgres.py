@@ -5,27 +5,32 @@ from psycopg2 import sql
 
 
 class DataTypes:
-    VARCHAR_TYPES = {
-        'character varying'
-    }
+    VARCHAR_TYPES = [
+        'text',
+        'character varying',
+        'character'
+    ]
 
-    NUMERIC_TYPES = {
+    NUMERIC_TYPES = [
         'smallint',
         'integer',
         'bigint',
         'decimal',
         'numeric'
-    }
+    ]
 
-    DATE_TYPES = {
+    DATE_TYPES = [
         'date',
-        'timestamp'
-    }
+        'timestamp',
+        'timestamp without time zone'
+    ]
 
-    BOOLEAN_TYPES = {
+    BOOLEAN_TYPES = [
         'boolean',
         'bool'
-    }
+    ]
+
+    SUPPORTED_TYPES = VARCHAR_TYPES + NUMERIC_TYPES + DATE_TYPES + BOOLEAN_TYPES
 
 
 def create_database(connection, cursor, db_name, owner_name):
@@ -110,7 +115,8 @@ def get_column_information(cursor, table_name):
     try:
         cursor.execute(f"""
             SELECT 
-                column_name, data_type, character_maximum_length
+                column_name, data_type, character_maximum_length, column_default, 
+                numeric_precision, numeric_precision_radix, numeric_scale
             FROM   information_schema.columns
             WHERE  table_name = '{table_name}'
             ORDER  BY ordinal_position;
@@ -121,7 +127,7 @@ def get_column_information(cursor, table_name):
         sys.exit(f'Could not get columns for the "{table_name}" table.')
 
 
-def get_table_primary_key(cursor, table_name):
+def get_table_primary_keys(cursor, table_name):
     try:
         cursor.execute(f"""
                     SELECT a.attname
@@ -131,6 +137,6 @@ def get_table_primary_key(cursor, table_name):
                     WHERE  i.indrelid = '{table_name}'::regclass
                     AND    i.indisprimary;""")
 
-        return cursor.fetchone()
+        return [r[0] for r in cursor.fetchall()]
     except psycopg2.DatabaseError:
         sys.exit(f'Could not get the primary key information for the"{table_name}" table.')
