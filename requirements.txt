@@ -1,0 +1,4 @@
+numpy==1.17.3
+radar==0.3
+psycopg2==2.8.4
+typing==3.7.4.1
