@@ -3,6 +3,7 @@ import random
 import sys
 from typing import Dict
 
+import numpy
 import psycopg2
 from psycopg2 import sql
 
@@ -20,6 +21,7 @@ class DataGenerator:
     table_information: Dict = {}
 
     def generate(self, args):
+        print(f'Preparing the generation of synthetic data into the "{args.DBNAMEGEN}" database...')
         try:
             connection = psycopg2.connect(dbname=args.DBNAMEGEN,
                                           user=args.user,
@@ -44,8 +46,6 @@ class DataGenerator:
 
         cursor = connection.cursor()
 
-        print(f'Generating synthetic data into the "{args.DBNAMEGEN}" database...')
-
         table_results = postgres.get_tables(cursor)
 
         tables_list = None
@@ -54,6 +54,7 @@ class DataGenerator:
             tables_list = [table.strip(' ') for table in tables_list]
 
         insert_dict = dict()
+
         for table_entry in table_results:
             table_name = table_entry[1]
 
@@ -80,6 +81,7 @@ class DataGenerator:
                 if not column_info.get("column_default"):
                     column_names.append(column_name)
 
+            print(f'Generating synthetic data into the "{table_name}" table...')
             self.create_insert_query(cursor, args.mf, table_name, column_names, insert_dict)
 
         connection = psycopg2.connect(dbname=args.DBNAMEGEN,
@@ -162,7 +164,6 @@ class DataGenerator:
         for column_info in self.table_information[table_name]["column_information"].values():
             column_name = column_info.get("column_name")
             data_type = column_info.get("data_type")
-            max_length = column_info.get("max_length")
             numeric_precision = column_info.get("numeric_precision")
             numeric_precision_radix = column_info.get("numeric_precision_radix")
             numeric_scale = column_info.get("numeric_scale")
@@ -176,31 +177,53 @@ class DataGenerator:
                     if column_stats["most_common_vals"] and column_stats["most_common_freqs"]:
                         most_common_values = column_stats["most_common_vals"]
                         most_common_freqs = column_stats["most_common_freqs"]
+                        avg_width = column_stats["avg_width"]
+                        n_distinct = column_stats["n_distinct"]
 
                         if most_common_values and most_common_freqs:
                             generated_vals = list()
-                            generated_freqs = list()
 
-                            index = 0
+                            if n_distinct > 0:
+                                distinct_no = n_distinct
+                            else:
+                                distinct_no = -n_distinct * number_of_rows
+
+                            distinct_no = int(distinct_no)
+                            leftover_freq = 1 - sum(most_common_freqs)
+                            generated_freqs = most_common_freqs
+                            generated_freqs += (numpy.random.dirichlet(numpy.ones(distinct_no - len(most_common_freqs)))
+                                                * leftover_freq).tolist()
+
+                            rows_to_gen = len(generated_freqs)
+
                             if data_type in postgres.DataTypes.NUMERIC_TYPES:
-                                for _ in most_common_values:
+                                min_value = None
+                                cursor.execute(f"SELECT MIN({column_name}) FROM {table_name}")
+                                result = cursor.fetchone()
+                                if result:
+                                    min_value = result[0]
+
+                                max_value = None
+                                cursor.execute(f"SELECT MAX({column_name}) FROM {table_name}")
+                                result = cursor.fetchone()
+                                if result:
+                                    max_value = result[0]
+
+                                for index in range(rows_to_gen):
                                     generated_vals.append(
-                                        random_number(numeric_precision, numeric_precision_radix, numeric_scale))
-                                    generated_freqs.append(most_common_freqs[index])
-                                    index += 1
+                                        random_number(numeric_precision, numeric_precision_radix,
+                                                      numeric_scale,
+                                                      min_value=min_value, max_value=max_value))
 
                             elif data_type in postgres.DataTypes.DATE_TYPES:
-                                for _ in most_common_values:
+                                for index in range(rows_to_gen):
                                     generated_vals.append(utils.random_date(START_DATE, END_DATE))
-                                    generated_freqs.append(most_common_freqs[index])
-                                    index += 1
 
                             elif data_type in postgres.DataTypes.VARCHAR_TYPES:
-                                average_length = sum(map(len, most_common_values)) / len(most_common_values)
-                                for value in most_common_values:
-                                    generated_vals.append(random_word(value, average_length, max_length))
-                                    generated_freqs.append(most_common_freqs[index])
-                                    index += 1
+                                for index in range(rows_to_gen):
+                                    generated_vals.append(random_word(
+                                        avg_width - 1,
+                                        value=most_common_values[utils.random_number(0, len(most_common_values) - 1)]))
 
                             column_information[column_name]["generated_vals"] = generated_vals
                             column_information[column_name]["generated_freqs"] = generated_freqs
@@ -218,7 +241,7 @@ class DataGenerator:
             column_values = list()
             insert_query += "INSERT INTO {table_name}("
             insert_query += '{0}{1}'.format(', '.join(column_names), ') VALUES (')
-
+            random_frac = random.random()
             for column_info in self.table_information[table_name]["column_information"].values():
                 column_name = column_info.get("column_name")
                 data_type = column_info.get("data_type")
@@ -235,24 +258,31 @@ class DataGenerator:
                 generated_vals = None
                 generated_freqs = None
 
+                null_frac = None
                 column_stats = None
                 if column_name in self.table_information[table_name]["pg_stats"]:
                     column_stats = self.table_information[table_name]["pg_stats"][column_name]
 
                 if column_stats:
                     if "generated_vals" in column_information[column_name] \
-                            and "generated_freqs" in column_information[column_name] \
                             and column_information[column_name]["generated_vals"] \
+                            and "generated_freqs" in column_information[column_name] \
                             and column_information[column_name]["generated_freqs"]:
                         generated_vals = column_information[column_name]["generated_vals"]
                         generated_freqs = column_information[column_name]["generated_freqs"]
+
+                        null_frac = column_stats["null_frac"]
 
                     # if "histogram_bounds" in column_stats:
                     #    histogram_bounds = column_stats["histogram_bounds"]
 
                 if data_type in postgres.DataTypes.NUMERIC_TYPES:
                     if generated_vals and generated_freqs:
-                        column_values.append("{0}".format(utils.random_choices(generated_vals, generated_freqs)))
+                        if null_frac and random_frac <= null_frac:
+                            column_values.append("{0}".format('NULL'))
+                        else:
+                            column_values.append("{0}".format(utils.random_choices(generated_vals, generated_freqs)))
+
                     # elif histogram_bounds:
                     #    column_values.append("{0}".format(utils.random_choice(histogram_bounds)))
                     else:
@@ -260,8 +290,11 @@ class DataGenerator:
                             "{0}".format(random_number(numeric_precision, numeric_precision_radix, numeric_scale)))
                 elif data_type in postgres.DataTypes.DATE_TYPES:
                     if generated_vals and generated_freqs:
-                        column_values.append(
-                            "'{0}'".format(utils.random_choices(generated_vals, generated_freqs)))
+                        if null_frac and random_frac <= null_frac:
+                            column_values.append("{0}".format('NULL'))
+                        else:
+                            column_values.append("'{0}'".format(utils.random_choices(generated_vals, generated_freqs)))
+
                     # elif histogram_bounds:
                     #    column_values.append("'{0}'".format(utils.random_choice(histogram_bounds)))
                     else:
@@ -270,45 +303,55 @@ class DataGenerator:
                     column_values.append("{0}".format(utils.random_boolean()))
                 elif data_type in postgres.DataTypes.VARCHAR_TYPES:
                     if generated_vals and generated_freqs:
-                        column_values.append(
-                            "'{0}'".format(utils.random_choices(generated_vals, generated_freqs)))
+                        if null_frac and random_frac <= null_frac:
+                            column_values.append("{0}".format('NULL'))
+                        else:
+                            column_values.append("'{0}'".format(utils.random_choices(generated_vals, generated_freqs)))
                     # elif histogram_bounds:
                     #    column_values.append("'{0}'".format(utils.random_choice(histogram_bounds)))
                     else:
-                        column_values.append("'{0}'".format(random_word(
-                            utils.random_word(RANDOM_WORD_LENGTH), max_length / 2.5, max_length
-                        )))
+                        column_values.append("'{0}'".format(random_word(max_length / 2.5)))
 
             insert_query += '{0}{1}'.format(', '.join(column_values), ');')
 
         insert_dict[table_name] = insert_query
 
 
-def random_word(value, average_length, max_length):
-    random_length = random.randrange(int(average_length), stop=int(average_length * 2))
-    if max_length < random_length:
-        random_length = max_length
-
-    if str(value).isupper():
-        word = utils.random_word(random_length).upper()
-    elif str(value) and str(value)[0].isupper():
-        word = utils.random_word(random_length).capitalize()
+def random_word(average_length, value=None):
+    average_length = int(average_length)
+    if value:
+        if str(value).isupper():
+            word = utils.random_word(average_length).upper()
+        elif str(value) and str(value)[0].isupper():
+            word = utils.random_word(average_length).capitalize()
+        else:
+            word = utils.random_word(average_length)
     else:
-        word = utils.random_word(random_length)
+        word = utils.random_word(average_length)
 
     return word
 
 
-def random_number(numeric_precision, numeric_precision_radix, numeric_scale):
+def random_number(numeric_precision, numeric_precision_radix, numeric_scale, min_value=None, max_value=None):
     if numeric_precision:
         if numeric_scale and numeric_scale != 0:
             number = round(utils.random_number(
-                0, (numeric_precision_radix ** (numeric_precision - numeric_scale - 1)) / 1.5,
+                min_value or 0,
+                max_value or ((numeric_precision_radix ** (numeric_precision - numeric_scale - 1)) / 1.5),
                 uniform=True),
                 numeric_scale)
         else:
-            number = utils.random_number(0, (numeric_precision_radix ** (numeric_precision - 1)) / 1.5)
+            number = utils.random_number(min_value or 0,
+                                         max_value or ((numeric_precision_radix ** (numeric_precision - 1)) / 1.5))
     else:
         number = utils.random_number(0, 50000)
 
     return number
+
+
+def random_sum_to(n, num_terms=None):
+    lst = sorted(random.uniform(0, n) for _ in range(num_terms))
+    # compute the sum
+    temp_sum = sum(lst)
+    # now divide each member by the sum to normalize the list
+    return [i / temp_sum for i in lst]

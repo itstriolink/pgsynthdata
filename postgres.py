@@ -115,7 +115,8 @@ def get_column_information(cursor, table_name):
     try:
         cursor.execute(f"""
             SELECT 
-                column_name, data_type, character_maximum_length, column_default, 
+                column_name, data_type, character_maximum_length,
+                column_default,
                 numeric_precision, numeric_precision_radix, numeric_scale
             FROM   information_schema.columns
             WHERE  table_name = '{table_name}'
@@ -123,8 +124,8 @@ def get_column_information(cursor, table_name):
             """)
 
         return cursor.fetchall()
-    except psycopg2.DatabaseError:
-        sys.exit(f'Could not get columns for the "{table_name}" table.')
+    except psycopg2.DatabaseError as db_error:
+        sys.exit(f'Could not get columns for the "{table_name}" table. Error description: {db_error}')
 
 
 def get_table_primary_keys(cursor, table_name):
