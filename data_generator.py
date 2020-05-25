@@ -347,11 +347,3 @@ def random_number(numeric_precision, numeric_precision_radix, numeric_scale, min
         number = utils.random_number(0, 50000)
 
     return number
-
-
-def random_sum_to(n, num_terms=None):
-    lst = sorted(random.uniform(0, n) for _ in range(num_terms))
-    # compute the sum
-    temp_sum = sum(lst)
-    # now divide each member by the sum to normalize the list
-    return [i / temp_sum for i in lst]
