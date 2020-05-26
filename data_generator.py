@@ -28,8 +28,8 @@ class DataGenerator:
                                           host=args.hostname,
                                           port=args.port,
                                           password=args.password)
-        except psycopg2.DatabaseError:
-            sys.exit(f'Could not connect to the \"{args.DBNAMEGEN}\" database.')
+        except psycopg2.DatabaseError as error:
+            sys.exit('Could not connect to the "{0}" database. Error description: {1}'.format(args.DBNAMEGEN, error))
 
         cursor = connection.cursor()
 
@@ -41,8 +41,8 @@ class DataGenerator:
                                           host=args.hostname,
                                           port=args.port,
                                           password=args.password)
-        except psycopg2.DatabaseError:
-            sys.exit(f'Could not connect to the "{args.DBNAMEIN}" database.')
+        except psycopg2.DatabaseError as error:
+            sys.exit('Could not connect to the "{0}" database. Error description: {1}'.format(args.DBNAMEIN, error))
 
         cursor = connection.cursor()
 

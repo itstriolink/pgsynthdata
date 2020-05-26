@@ -65,7 +65,7 @@ def truncate_tables(connection, cursor):
         try:
             cursor.execute(f"""TRUNCATE TABLE {table_name};""")
         except psycopg2.DatabaseError as error:
-            sys.exit('Could not truncate table "{0}". Error: {1}'.format(table_name, error))
+            sys.exit('Could not truncate table "{0}". Error description: {1}'.format(table_name, error))
 
         connection.commit()
 
@@ -95,8 +95,8 @@ def get_tables(cursor):
         ORDER BY tablename;""")
 
         return cursor.fetchall()
-    except psycopg2.DatabaseError:
-        sys.exit('Could not retrieve the database\'s table information')
+    except psycopg2.DatabaseError as error:
+        sys.exit('Could not retrieve the database\'s table information. Error description: {0}'.format(error))
 
 
 def get_table_stats(cursor, table_name):
@@ -107,8 +107,8 @@ def get_table_stats(cursor, table_name):
            where schemaname not in ('pg_catalog') and tablename = '{table_name}'""")
 
         return cursor.fetchall()
-    except psycopg2.DatabaseError:
-        sys.exit(f'Could not get statistics for the "{table_name}" table')
+    except psycopg2.DatabaseError as error:
+        sys.exit('Could not get statistics for the "{0}" table. Error description: {1}'.format(table_name, error))
 
 
 def get_column_information(cursor, table_name):
@@ -124,8 +124,8 @@ def get_column_information(cursor, table_name):
             """)
 
         return cursor.fetchall()
-    except psycopg2.DatabaseError as db_error:
-        sys.exit(f'Could not get columns for the "{table_name}" table. Error description: {db_error}')
+    except psycopg2.DatabaseError as error:
+        sys.exit('Could not get columns for the "{0}" table. Error description: {1}'.format(table_name, error))
 
 
 def get_table_primary_keys(cursor, table_name):
@@ -139,5 +139,7 @@ def get_table_primary_keys(cursor, table_name):
                     AND    i.indisprimary;""")
 
         return [r[0] for r in cursor.fetchall()]
-    except psycopg2.DatabaseError:
-        sys.exit(f'Could not get the primary key information for the"{table_name}" table.')
+    except psycopg2.DatabaseError as error:
+        sys.exit(
+            'Could not get the primary key information for the"{0}" table. Error description: {1}'.format(table_name,
+                                                                                                          error))
