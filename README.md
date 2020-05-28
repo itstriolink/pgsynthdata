@@ -55,7 +55,7 @@ password *pw123*
 Contributions
 ------
 
-Contributions are welcome, please check the [Issues](https://gitlab.com/labiangashi/pgsynthdata/-/issues) list for future ideas.
+Contributions are welcomed, please check the [Issues](https://gitlab.com/labiangashi/pgsynthdata/-/issues) list for future ideas.
 
 Author
 ------
