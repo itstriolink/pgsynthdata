@@ -12,7 +12,6 @@ Installation
 * Run *pip install -r requirements.txt* to install all the required libraries/dependencies
 * Run the tool using the terminal shell while having the PostgreSQL server up and running
 
-
 Usage
 ------
 Tool arguments:
@@ -53,6 +52,10 @@ generates synthetic data into it
 password *pw123*
   * Only truncates the *myTable1* and *myTable2* tables and generates synthetic data into them
 
+Contributions
+------
+
+Contributions are welcome, please check the [Issues](https://gitlab.com/labiangashi/pgsynthdata/-/issues) list for future ideas.
 
 Author
 ------
