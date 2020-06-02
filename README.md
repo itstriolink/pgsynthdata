@@ -41,16 +41,13 @@ password *postgres*
 * **python pgsynthdata.py dbin dbgen pw1234 -H myHost -p 8070 -U testuser -generate**
   * Connects to database *dbin*, host=*myHost*, port=*8070*, user=*testuser* with
 password *pw1234*
-  * Truncates tables of *dbgen* and generates synthetic data into them
-* **python pgsynthdata.py dbin dbgencreate pw123 -U myUser -generate -r**
-  * Connects to database *dbin*, host=*localhost*, port=*5432*, user=*myUser* with password
-*pw123*
-  * Creates new database *dbgencreate* with the same schema as *dbin* and
-generates synthetic data into it
+  * Create new database *dbgen* and generates synthetic data into it
 * **python pgsynthdata.py dbin dbgencreate pw123 -U myUser -generate -tables myTable1, myTable2**
   * Connects to database *dbin*, host=*localhost*, port=*5432*, user=*myUser* with
 password *pw123*
-  * Only truncates the *myTable1* and *myTable2* tables and generates synthetic data into them
+  * Creates new database *dbgencreate* with synthetic data on tables: *table1* and *table2*
+* **python pgsynthdata.py --help**
+  * Show the help information of the tool
 
 Contributions
 ------
