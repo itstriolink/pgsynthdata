@@ -41,13 +41,13 @@ def create_database(connection, cursor, db_name, owner_name):
 
     if not exists:
         try:
-            if owner_name is None:
-                cursor.execute(sql.SQL("CREATE DATABASE {}").format(
-                    sql.Identifier(db_name)))
-            else:
+            if owner_name is not None:
                 cursor.execute(sql.SQL("CREATE DATABASE {} OWNER {}").format(
                     sql.Identifier(db_name),
                     sql.Identifier(owner_name)))
+            else:
+                cursor.execute(sql.SQL("CREATE DATABASE {}").format(
+                    sql.Identifier(db_name)))
 
             connection.commit()
         except psycopg2.DatabaseError as error:
@@ -68,6 +68,14 @@ def truncate_tables(connection, cursor):
             sys.exit('Could not truncate table "{0}". Error description: {1}'.format(table_name, error))
 
         connection.commit()
+
+
+def analyze_database(cursor, db_name):
+    try:
+        print('Retrieving statistics from the "{0}" database.'.format(db_name))
+        cursor.execute("ANALYZE")
+    except psycopg2.DatabaseError as error:
+        sys.exit('Database "{0}" could not be analyzed. Error: {1}'.format(db_name, error))
 
 
 def show_database_stats(cursor):

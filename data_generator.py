@@ -33,7 +33,7 @@ class DataGenerator:
 
         cursor = connection.cursor()
 
-        postgres.truncate_tables(connection, cursor)
+        # postgres.truncate_tables(connection, cursor)
 
         try:
             connection = psycopg2.connect(dbname=args.DBNAMEIN,
@@ -179,6 +179,7 @@ class DataGenerator:
                         most_common_freqs = column_stats["most_common_freqs"]
                         avg_width = column_stats["avg_width"]
                         n_distinct = column_stats["n_distinct"]
+                        null_frac = column_stats["null_frac"]
 
                         if most_common_values and most_common_freqs:
                             generated_vals = list()
@@ -188,7 +189,7 @@ class DataGenerator:
                             else:
                                 distinct_no = -n_distinct * number_of_rows
 
-                            distinct_no = int(distinct_no)
+                            distinct_no = round(distinct_no)
                             leftover_freq = 1 - sum(most_common_freqs)
                             generated_freqs = most_common_freqs
                             generated_freqs += (numpy.random.dirichlet(numpy.ones(distinct_no - len(most_common_freqs)))
@@ -237,7 +238,7 @@ class DataGenerator:
             print(f'No columns found to generate data into. Skipping the table\'s "{table_name}" data generation...')
             return
 
-        for _ in range(int(number_of_rows * multiplication_factor)):
+        for _ in range(round(number_of_rows * multiplication_factor)):
             column_values = list()
             insert_query += "INSERT INTO {table_name}("
             insert_query += '{0}{1}'.format(', '.join(column_names), ') VALUES (')
@@ -318,7 +319,7 @@ class DataGenerator:
 
 
 def random_word(average_length, value=None):
-    average_length = int(average_length)
+    average_length = round(average_length)
     if value:
         if str(value).isupper():
             word = utils.random_word(average_length).upper()

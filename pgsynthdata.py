@@ -15,23 +15,19 @@ examples = '''How to use pgsynthdata.py:
 
   python pgsynthdata.py test postgres -show
   \t-> Connects to database "test", host="localhost", port="5432", default user with password "postgres"
-  \t-> Shows statistics from certain tables in database test
+  \t-> Shows statistics from the tables in database test
   
   python pgsynthdata.py db pw1234 -H myHost -p 8070 -U testuser -show
   \t-> Connects to database "db", host="myHost", port="8070", user="testuser" with password "pw1234"
-  \t-> Shows statistics from certain tables in database db
+  \t-> Shows statistics from the tables in database db
   
   python pgsynthdata.py dbin dbgen pw1234 -H myHost -p 8070 -U testuser -generate
   \t-> Connects to database "dbin", host="myHost", port="8070", user="testuser" with password "pw1234"
   \t-> Generates synthetic data into "dbgen"
   
-  python pgsynthdata.py dbin dbgen pw1234 -H myHost -p 8070 -U testuser -generate -r
-  \t-> Connects to database "dbin", host="myHost", port="8070", user="testuser" with password "pw1234"
-  \t-> Creates new database "dbgen" with synthetic data
-  
   python pgsynthdata.py dbin dbgen pw1234 -H myHost -p 8070 -U testuser -generate -tables table1, table2
   \t-> Connects to database "dbin", host="myHost", port="8070", user="testuser" with password "pw1234"
-  \t-> Generates synthetic data into "dbgen" tables: "table1" and "table2"
+  \t-> Creates new database "dbgen" with synthetic data on tables: "table1" and "table2"
   
   python pgsynthdata.py --version
   \t-> Show the version of this program and quit'''
@@ -61,7 +57,7 @@ def main():
                 connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
                 cursor = connection.cursor()
 
-                generate(connection, cursor, args, args.DBNAMEGEN, args.owner)
+                generate(connection, cursor, args)
             except psycopg2.DatabaseError:
                 sys.exit('''Connection failed because of at least one of the following reasons:
                         Database does not exist
@@ -89,8 +85,6 @@ def parse_arguments():
 
     parser.add_argument('-mf', '--mf', type=float, default=1.0,
                         help='Multiplication factor (mf) for the generated synthesized data (default: 1.0)')
-    parser.add_argument('-r', '--recreate', action='store_true',
-                        help="Recreate the DBNAMEGEN database with the same schema as DBNAMEIN.")
     parser.add_argument('-tables', '--tables', type=str,
                         help='Only generate data for specific tables, separated by a comma')
 
@@ -126,10 +120,11 @@ def show(args):
             connection.close()
 
 
-def generate(connection, cursor, args, db_name_gen, owner_name):
-    if args.recreate:
-        postgres.create_database(connection, cursor, db_name_gen, owner_name)
-        copy_database_structure(args)
+def generate(connection, cursor, args):
+    postgres.create_database(connection, cursor, args.DBNAMEGEN, args.owner)
+    copy_database_structure(args)
+
+    # postgres.analyze_database(cursor, args.DBNAMEIN)
 
     data_generator.generate(args)
 
