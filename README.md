@@ -1,4 +1,4 @@
-# Pure Synthetic Data Generation with a PostgreSQL and Python-based Tool.
+# Pure Synthetic Data Generation with a PostgreSQL and Python-based Tool
 
 Description
 ------
