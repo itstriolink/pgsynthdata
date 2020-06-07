@@ -22,6 +22,7 @@ class DataGenerator:
 
     def generate(self, args):
         print(f'Preparing the generation of synthetic data into the "{args.DBNAMEGEN}" database...')
+
         try:
             connection = psycopg2.connect(dbname=args.DBNAMEGEN,
                                           user=args.user,
@@ -30,10 +31,6 @@ class DataGenerator:
                                           password=args.password)
         except psycopg2.DatabaseError as error:
             sys.exit('Could not connect to the "{0}" database. Error description: {1}'.format(args.DBNAMEGEN, error))
-
-        cursor = connection.cursor()
-
-        # postgres.truncate_tables(connection, cursor)
 
         try:
             connection = psycopg2.connect(dbname=args.DBNAMEIN,
@@ -167,75 +164,71 @@ class DataGenerator:
             numeric_precision = column_info.get("numeric_precision")
             numeric_precision_radix = column_info.get("numeric_precision_radix")
             numeric_scale = column_info.get("numeric_scale")
-
             column_information[column_name] = {}
 
             if column_name in self.table_information[table_name]["pg_stats"]:
                 column_stats = self.table_information[table_name]["pg_stats"][column_name]
+                if column_stats and column_stats["most_common_vals"] and column_stats["most_common_freqs"]:
+                    most_common_values = column_stats["most_common_vals"]
+                    most_common_freqs = column_stats["most_common_freqs"]
+                    avg_width = column_stats["avg_width"]
+                    n_distinct = column_stats["n_distinct"]
 
-                if column_stats:
-                    if column_stats["most_common_vals"] and column_stats["most_common_freqs"]:
-                        most_common_values = column_stats["most_common_vals"]
-                        most_common_freqs = column_stats["most_common_freqs"]
-                        avg_width = column_stats["avg_width"]
-                        n_distinct = column_stats["n_distinct"]
-                        null_frac = column_stats["null_frac"]
+                    if most_common_values and most_common_freqs:
+                        generated_vals = list()
+                        if n_distinct > 0:
+                            distinct_no = n_distinct
+                        else:
+                            distinct_no = -n_distinct * number_of_rows
+                        distinct_no = round(distinct_no)
+                        leftover_freq = 1 - sum(most_common_freqs)
+                        generated_freqs = most_common_freqs
 
-                        if most_common_values and most_common_freqs:
-                            generated_vals = list()
+                        # The dirichlet function that generates random floating numbers to fill
+                        # the left-over frequencies
+                        # Only place where the numpy library is used
+                        generated_freqs += (numpy.random.dirichlet(numpy.ones(distinct_no - len(most_common_freqs)))
+                                            * leftover_freq).tolist()
 
-                            if n_distinct > 0:
-                                distinct_no = n_distinct
-                            else:
-                                distinct_no = -n_distinct * number_of_rows
+                        rows_to_gen = len(generated_freqs)
 
-                            distinct_no = round(distinct_no)
-                            leftover_freq = 1 - sum(most_common_freqs)
-                            generated_freqs = most_common_freqs
-                            generated_freqs += (numpy.random.dirichlet(numpy.ones(distinct_no - len(most_common_freqs)))
-                                                * leftover_freq).tolist()
+                        if data_type in postgres.DataTypes.NUMERIC_TYPES:
+                            min_value = None
+                            cursor.execute(f"SELECT MIN({column_name}) FROM {table_name}")
+                            result = cursor.fetchone()
+                            if result:
+                                min_value = result[0]
+                            max_value = None
+                            cursor.execute(f"SELECT MAX({column_name}) FROM {table_name}")
+                            result = cursor.fetchone()
+                            if result:
+                                max_value = result[0]
+                            for index in range(rows_to_gen):
+                                generated_vals.append(
+                                    random_number(numeric_precision, numeric_precision_radix,
+                                                  numeric_scale,
+                                                  min_value=min_value, max_value=max_value))
+                        elif data_type in postgres.DataTypes.DATE_TYPES:
+                            for index in range(rows_to_gen):
+                                generated_vals.append(utils.random_date(START_DATE, END_DATE))
+                        elif data_type in postgres.DataTypes.VARCHAR_TYPES:
+                            for index in range(rows_to_gen):
+                                generated_vals.append(random_word(
+                                    avg_width - 1,
+                                    value=most_common_values[utils.random_number(0, len(most_common_values) - 1)]))
 
-                            rows_to_gen = len(generated_freqs)
-
-                            if data_type in postgres.DataTypes.NUMERIC_TYPES:
-                                min_value = None
-                                cursor.execute(f"SELECT MIN({column_name}) FROM {table_name}")
-                                result = cursor.fetchone()
-                                if result:
-                                    min_value = result[0]
-
-                                max_value = None
-                                cursor.execute(f"SELECT MAX({column_name}) FROM {table_name}")
-                                result = cursor.fetchone()
-                                if result:
-                                    max_value = result[0]
-
-                                for index in range(rows_to_gen):
-                                    generated_vals.append(
-                                        random_number(numeric_precision, numeric_precision_radix,
-                                                      numeric_scale,
-                                                      min_value=min_value, max_value=max_value))
-
-                            elif data_type in postgres.DataTypes.DATE_TYPES:
-                                for index in range(rows_to_gen):
-                                    generated_vals.append(utils.random_date(START_DATE, END_DATE))
-
-                            elif data_type in postgres.DataTypes.VARCHAR_TYPES:
-                                for index in range(rows_to_gen):
-                                    generated_vals.append(random_word(
-                                        avg_width - 1,
-                                        value=most_common_values[utils.random_number(0, len(most_common_values) - 1)]))
-
-                            column_information[column_name]["generated_vals"] = generated_vals
-                            column_information[column_name]["generated_freqs"] = generated_freqs
+                        column_information[column_name]["generated_vals"] = generated_vals
+                        column_information[column_name]["generated_freqs"] = generated_freqs
 
             if data_type not in postgres.DataTypes.SUPPORTED_TYPES:
                 print(
-                    f'The "{data_type}" data type is not supported. Skipping the table\'s "{table_name}" data generation...')
+                    f'The "{data_type}" data type is not supported. '
+                    f'Skipping the table\'s "{table_name}" data generation...')
                 return
 
         if not column_names:
-            print(f'No columns found to generate data into. Skipping the table\'s "{table_name}" data generation...')
+            print(f'No columns found to generate data into. '
+                  f'Skipping the table\'s "{table_name}" data generation...')
             return
 
         for _ in range(round(number_of_rows * multiplication_factor)):
@@ -243,6 +236,7 @@ class DataGenerator:
             insert_query += "INSERT INTO {table_name}("
             insert_query += '{0}{1}'.format(', '.join(column_names), ') VALUES (')
             random_frac = random.random()
+
             for column_info in self.table_information[table_name]["column_information"].values():
                 column_name = column_info.get("column_name")
                 data_type = column_info.get("data_type")
@@ -250,17 +244,13 @@ class DataGenerator:
                 numeric_precision = column_info.get("numeric_precision")
                 numeric_precision_radix = column_info.get("numeric_precision_radix")
                 numeric_scale = column_info.get("numeric_scale")
-
                 if column_info.get("column_default"):
                     continue
-
-                # histogram_bounds = None
-
                 generated_vals = None
                 generated_freqs = None
-
                 null_frac = None
                 column_stats = None
+
                 if column_name in self.table_information[table_name]["pg_stats"]:
                     column_stats = self.table_information[table_name]["pg_stats"][column_name]
 
@@ -271,11 +261,7 @@ class DataGenerator:
                             and column_information[column_name]["generated_freqs"]:
                         generated_vals = column_information[column_name]["generated_vals"]
                         generated_freqs = column_information[column_name]["generated_freqs"]
-
                         null_frac = column_stats["null_frac"]
-
-                    # if "histogram_bounds" in column_stats:
-                    #    histogram_bounds = column_stats["histogram_bounds"]
 
                 if data_type in postgres.DataTypes.NUMERIC_TYPES:
                     if generated_vals and generated_freqs:
@@ -283,9 +269,6 @@ class DataGenerator:
                             column_values.append("{0}".format('NULL'))
                         else:
                             column_values.append("{0}".format(utils.random_choices(generated_vals, generated_freqs)))
-
-                    # elif histogram_bounds:
-                    #    column_values.append("{0}".format(utils.random_choice(histogram_bounds)))
                     else:
                         column_values.append(
                             "{0}".format(random_number(numeric_precision, numeric_precision_radix, numeric_scale)))
@@ -295,9 +278,6 @@ class DataGenerator:
                             column_values.append("{0}".format('NULL'))
                         else:
                             column_values.append("'{0}'".format(utils.random_choices(generated_vals, generated_freqs)))
-
-                    # elif histogram_bounds:
-                    #    column_values.append("'{0}'".format(utils.random_choice(histogram_bounds)))
                     else:
                         column_values.append("'{0}'".format(utils.random_date(START_DATE, END_DATE)))
                 elif data_type in postgres.DataTypes.BOOLEAN_TYPES:
@@ -308,20 +288,18 @@ class DataGenerator:
                             column_values.append("{0}".format('NULL'))
                         else:
                             column_values.append("'{0}'".format(utils.random_choices(generated_vals, generated_freqs)))
-                    # elif histogram_bounds:
-                    #    column_values.append("'{0}'".format(utils.random_choice(histogram_bounds)))
                     else:
                         column_values.append("'{0}'".format(random_word(max_length / 2.5)))
-
             insert_query += '{0}{1}'.format(', '.join(column_values), ');')
-
         insert_dict[table_name] = insert_query
 
 
 def random_word(average_length, value=None):
     average_length = round(average_length)
     if value:
-        if str(value).isupper():
+        if str(value).isdigit():
+            word = utils.random_word(average_length, numeric=True)
+        elif str(value).isupper():
             word = utils.random_word(average_length).upper()
         elif str(value) and str(value)[0].isupper():
             word = utils.random_word(average_length).capitalize()

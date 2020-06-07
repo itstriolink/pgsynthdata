@@ -4,12 +4,16 @@ import string
 import radar
 
 
-def random_word(length):
+def random_word(length, numeric=False):
     if length == 0:
         length += 1
-
     letters = string.ascii_lowercase
-    return ''.join(random.choice(letters) for i in range(length))
+    numbers = string.digits
+
+    if numeric:
+        return ''.join(random.choice(numbers) for i in range(length))
+    else:
+        return ''.join(random.choice(letters) for i in range(length))
 
 
 def random_date(start_date, end_date):
@@ -28,7 +32,6 @@ def random_number(start, end, uniform=False):
 
 def random_boolean(postgres=True):
     random_boolean = random.choice([True, False])
-
     if not postgres:
         return random_boolean
     else:

@@ -78,12 +78,20 @@ def analyze_database(cursor, db_name):
         sys.exit('Database "{0}" could not be analyzed. Error: {1}'.format(db_name, error))
 
 
-def show_database_stats(cursor):
+def show_database_stats(cursor, tables_arg):
     tables = get_tables(cursor)
-    print(tables)
+
+    tables_list = None
+    if tables_arg:
+        tables_list = tables_arg.split(",")
+        tables_list = [table.strip(' ') for table in tables_list]
 
     for table_info in tables:
         table_name = table_info[1]
+
+        if tables_list:
+            if table_name not in tables_list:
+                continue
         sub_result = get_table_stats(cursor, table_name)
 
         print(f'\n -- {table_name} -- \n')
@@ -110,7 +118,10 @@ def get_tables(cursor):
 def get_table_stats(cursor, table_name):
     try:
         cursor.execute(f"""
-           select attname, null_frac, avg_width, n_distinct, most_common_vals, most_common_freqs, histogram_bounds, correlation 
+           select 
+            attname, null_frac, avg_width, n_distinct, 
+            most_common_vals, most_common_freqs, histogram_bounds, 
+            correlation 
            from pg_stats 
            where schemaname not in ('pg_catalog') and tablename = '{table_name}'""")
 

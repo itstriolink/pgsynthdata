@@ -15,15 +15,15 @@ examples = '''How to use pgsynthdata.py:
 
   python pgsynthdata.py test postgres -show
   \t-> Connects to database "test", host="localhost", port="5432", default user with password "postgres"
-  \t-> Shows statistics from the tables in database test
+  \t-> Shows statistics from the tables in database "test"
   
   python pgsynthdata.py db pw1234 -H myHost -p 8070 -U testuser -show
   \t-> Connects to database "db", host="myHost", port="8070", user="testuser" with password "pw1234"
-  \t-> Shows statistics from the tables in database db
+  \t-> Shows statistics from the tables in database "db"
   
   python pgsynthdata.py dbin dbgen pw1234 -H myHost -p 8070 -U testuser -generate
   \t-> Connects to database "dbin", host="myHost", port="8070", user="testuser" with password "pw1234"
-  \t-> Generates synthetic data into "dbgen"
+  \t-> Creates new database "dbgen" with synthetic data
   
   python pgsynthdata.py dbin dbgen pw1234 -H myHost -p 8070 -U testuser -generate -tables table1, table2
   \t-> Connects to database "dbin", host="myHost", port="8070", user="testuser" with password "pw1234"
@@ -107,7 +107,7 @@ def show(args):
 
         cursor = connection.cursor()
 
-        postgres.show_database_stats(cursor)
+        postgres.show_database_stats(cursor, args.tables)
         cursor.close()
 
     except psycopg2.DatabaseError:
@@ -123,8 +123,6 @@ def show(args):
 def generate(connection, cursor, args):
     postgres.create_database(connection, cursor, args.DBNAMEGEN, args.owner)
     copy_database_structure(args)
-
-    # postgres.analyze_database(cursor, args.DBNAMEIN)
 
     data_generator.generate(args)
 
