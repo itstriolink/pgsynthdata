@@ -58,6 +58,7 @@ def main():
                 cursor = connection.cursor()
 
                 generate(connection, cursor, args)
+                cursor.close()
             except psycopg2.DatabaseError:
                 sys.exit('''Connection failed because of at least one of the following reasons:
                         Database does not exist
@@ -123,10 +124,7 @@ def show(args):
 def generate(connection, cursor, args):
     postgres.create_database(connection, cursor, args.DBNAMEGEN, args.owner)
     copy_database_structure(args)
-
     data_generator.generate(args)
-
-    cursor.close()
 
 
 def copy_database_structure(args):

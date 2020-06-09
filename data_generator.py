@@ -24,15 +24,6 @@ class DataGenerator:
         print(f'Preparing the generation of synthetic data into the "{args.DBNAMEGEN}" database...')
 
         try:
-            connection = psycopg2.connect(dbname=args.DBNAMEGEN,
-                                          user=args.user,
-                                          host=args.hostname,
-                                          port=args.port,
-                                          password=args.password)
-        except psycopg2.DatabaseError as error:
-            sys.exit('Could not connect to the "{0}" database. Error description: {1}'.format(args.DBNAMEGEN, error))
-
-        try:
             connection = psycopg2.connect(dbname=args.DBNAMEIN,
                                           user=args.user,
                                           host=args.hostname,
@@ -210,7 +201,10 @@ class DataGenerator:
                                                   min_value=min_value, max_value=max_value))
                         elif data_type in postgres.DataTypes.DATE_TYPES:
                             for index in range(rows_to_gen):
-                                generated_vals.append(utils.random_date(START_DATE, END_DATE))
+                                if data_type in ('timestamp', 'timestamp without time zone'):
+                                    generated_vals.append(utils.random_date(START_DATE, END_DATE, time=True))
+                                else:
+                                    generated_vals.append(utils.random_date(START_DATE, END_DATE))
                         elif data_type in postgres.DataTypes.VARCHAR_TYPES:
                             for index in range(rows_to_gen):
                                 generated_vals.append(random_word(

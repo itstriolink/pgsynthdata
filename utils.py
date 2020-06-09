@@ -16,8 +16,12 @@ def random_word(length, numeric=False):
         return ''.join(random.choice(letters) for i in range(length))
 
 
-def random_date(start_date, end_date):
-    return radar.random_date(start=start_date, stop=end_date)
+def random_date(start_date, end_date, time=False):
+    if time:
+        return radar.random_datetime(start=start_date, stop=end_date)
+    else:
+
+        return radar.random_date(start=start_date, stop=end_date)
 
 
 def random_number(start, end, uniform=False):
