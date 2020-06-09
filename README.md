@@ -6,7 +6,7 @@ A lightweight tool written in Python that teams up with PostgreSQL and it's *pg_
 
 It generates the synthetic data by reading the *pg_stats* table of the PostgreSQL, more explicitly by reading the most common values, their frequencies, 
 the average width of the column values, the number of distinct values etc. The algorithm combines all these values and properties in order to generate fully synthetic data
-that contains no actual values of the "real" database data but is very similar in the context of the "shapes" and the properties of the data.
+that contains no actual values of the "real" database data but is very similar in the context of the "shape" and the properties of the data.
 
 **Test dataset for the tool:**
 
