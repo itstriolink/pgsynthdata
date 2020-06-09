@@ -96,6 +96,8 @@ class DataGenerator:
 
         sys.stdout.write(f'Successfully generated the synthetic data into the "{args.DBNAMEGEN}" database.')
 
+        cursor.close()
+
     def fill_columns_dict(self, table_name, column_results, primary_columns):
         for column_entry in column_results:
             if not primary_columns or column_entry[0] not in primary_columns:
