@@ -15,12 +15,22 @@ Artificial Data on the other hand, is generated data with no linking or relation
 \newline
 In this project, we will be discussing the methods and techniques used for the generation of synthetic data and the original data used to generate such data, which means, fully artificial data with relation to the original data but with no clear signs of the original data.
 \section{Goals \& Requirements}
-The main objective of this project is to successfully generate fully synthesized data that is as realistic as possible using the \textit{PostgreSQL} relational database management system and the \textit{Python} programming language in conjunction with some other third-party modules that mostly deal with numbers.\\
+The main objective of this project is to successfully generate fully synthesized data that is as realistic as possible using the \textit{PostgreSQL} relational database management system and the \textit{Python} programming language in conjunction with some other third-party modules that mostly deal with numbers and mathematical functions.\\
+\newline
 This will be done using various methods and techniques that involve some sort of data anonymization, overcoming data type obstacles, histogram boundaries, respecting data privacy and data confidentiality etc. The tool initially tries to connect to an existing database and then based on the options provided, it will generate the synthesized data into a new desired database from the selected existing database. The process should be very straightforward.\\
+\newline
 The tool will be a single lightweight Python script that is executed from the shell terminal and which has various arguments that can be passed along with the command execution, with some of them being mandatory and some others optional (mostly related to database configuration and parameters).\\
 It will initially connect to a PostgreSQL database (given with arguments) , read the \textit{pg\_class} table in order to obtain the tables of the given/accessed database and then fetch all the results of each table from the \textit{pg\_stats} table. 
 To be continued...
 \section{Synthetic Data Generation}
-\lipsum[8-10]
+Synthetic data is a relatively new term for most of IT engineers. It has been emerging lately with the rise of applications and functions that require some sort of Machine Learning or Artifical Intelligence or just software engineers/QA who want to test their applications with a lot of data.\\
+\newline
+There exist a lot of ways for generating synthetic data and the languages/tools that are used to create such generation play a big role in defining the approach to generating such data. For example, here, PostgreSQL was used along with its \textit{pg\_stats} table and the whole tool relied on this table to do the synthetic data generation. Many other approaches exist and all of them have their advantages and disadvantages. The use for such data also has a very vast appliance and is very beneficial to the users that use it.\\
+\newline
+In this tool, a primary database with real data (or realistic) is required, the tool cannot generate anything without having the primary database to rely on and to gain information from and then manipulate that information to generate the synthetic data. A secondary database can exist (or the tool can create it itself) with the exact same schema as the primary database, however, the secondary database must be empty and truncated, ready for the synthetic data to be inserted into.\\
+\newline
+The synthetic data generation process involves a lot of mathematical functions, such as: randomization, probability, different mathematical distribution functions, frequencies etc. It also involves some manipulations with strings and this is done in order to achieve consistent and robust results when generating the synthetic data (The data exists in many forms).\\
+A lot of mathematical Python libraries were used in this tool that contained necessary functions for the randomization and the generation of the synthetic data.
+\newpage
 \section{Results}
 \lipsum[5-6]

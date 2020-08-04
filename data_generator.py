@@ -20,7 +20,7 @@ END_DATE = datetime.date.today()
 class DataGenerator:
     table_information: Dict = {}
 
-    def generate(self, args):
+    def  generate(self, args):
         print(f'Preparing the generation of synthetic data into the "{args.DBNAMEGEN}" database...')
 
         try:
