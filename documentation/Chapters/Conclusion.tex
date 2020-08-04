@@ -1,4 +1,35 @@
 \chapter{Conclusion}
+
 \section{Discussion of the Results}
+This tool was also presented in a webinar that has different attendees from different countries, many of them being members of the \href{https://www.swisspug.org/wiki/index.php/Swiss_PostgreSQL_Users_Group}{SwissPUG} group. The presentation was held online because of the COVID-19 restrictions but everything was made possible using screen-sharing.
+The Swiss PostgreSQL Users Group (SwissPUG) is a group of people sharing an interest in promoting the usage of the open-source database system PostgreSQL. \cite{SwissPUGWiki} \\
+\newline
+The tool was presented and demonstrated using the Tennis\_ATP dataset, which can be found in the datasets appendix of \nameref{sec:tennis_atp_dataset}. The whole approach of synthesizing and generating the data was demonstrated, explaining everything along the demonstration being done and the reason why it's done in that fashion.\\
+\newline
+Future ideas and improvements were suggested by the attendees as well, some of them being:
+\begin{itemize}
+\item{\href{https://gitlab.com/labiangashi/pgsynthdata/-/issues/7}{Making use of extended statistics for inter-column correlations:}}
+\item{\href{https://gitlab.com/labiangashi/pgsynthdata/-/issues/8}{Deducting the min/max from the pg statistics}}
+\item{Synthesizing geographical data}
+\item{Improving query plans by sharing the schema together with a set of test data with similar statistics (without revealing any confidential information) etc.}
+\end{itemize}
+Some of the attendees were interested in how the algorithm that synthesized the data worked in a more technical aspect, and some of the other attendees were already thinking of possible areas where they could apply this tool into.\\
+\newline
+Other ideas and nice to haves for the tool are:
+\begin{itemize}
+\item{\href{https://gitlab.com/labiangashi/pgsynthdata/-/issues/4}{Respect foreign key constraints}}
+\item{\href{https://gitlab.com/labiangashi/pgsynthdata/-/issues/5}{Add configuration to add new functionality (incl. new data type generators or schema specific generators)}}
+\item{\href{https://gitlab.com/labiangashi/pgsynthdata/-/issues/6}{Add support for data type geometry}}
+\end{itemize}
 \section{Achievements and Reflection}
+TBD..
 \section{Conclusion}
+With this tool, mainly SW engineers but also other people can generate incredible amounts of data that they can use for testing their application, for training their machine learning models, for data science projects etc.\\
+\newline
+The neat thing about this tool is that it contains data that has no direct association with the real data (which means it is fully anonymized), it is merely generated data that has the same shape/size of the real data, but nothing concretely the same as the real data, hence the name fully synthesized data.\\
+\newline
+The tool is also very straight-forward to use and does everything itself, the most important factor before running the tool is having the primary database with realistic data and having another empty secondary database with the same schema, if that is not the case, the tool can also re-create the whole database, copying the schema of the primary database and having it ready for the tool to insert the data into. The amount of data that is generated can be optionally specified, if more data than the existing data in the primary database need to be generated. The larger the rows to generate, the more time it will take for the tool to complete its algorithm.\\
+All the dependencies for running the tool are contained in a single text file called \textit{requirements.txt} and they can all be installed together in a single batch command before running the tool for the first time.\\
+\newline
+The tool contains an open-source \href{https://opensource.org/licenses/MIT}{MIT License} and is open to improvements and new feature additions/suggestions. The tool also has a list of issues that mostly contain new features or nice to haves for the application and they are listed in the \href{https://gitlab.com/labiangashi/pgsynthdata/-/issues}{GitLab repository}: \href{https://gitlab.com/labiangashi/pgsynthdata/-/issues}{https://gitlab.com/labiangashi/pgsynthdata/-/issues}
+
