@@ -17,7 +17,3 @@ After the information has been retrieved from the database (the statistics and n
 In this part, the data is generated in an iterative fashion and then later inserted directly into the secondary PostgreSQL empty database. Data generated here, must be consistent and in conformance with the databases schema. If something fails here (at a column), usually, the whole table is skipped completely because the generation cannot proceed for that table anymore.\\
 The generation process reads through every information that has been created previously and generates data by relying on that information. Some sort of manipulation is done here too, the information created before serves only as a "guide" for generating the data, and it is not the actual data itself.\\
 The tool iterates through each column of the table and checks the data type of that column (which was added before), and then based on the data type, it does some operations that generate the data, always of course, relying on the \textit{pg\_stats} statistics. If the table/column have no pg\_stats available, data is generated regardless, however, it is generated in a fully randomized fashion because there is no statistics or numbers to rely on.
-\section{Selected Database Related Open Source Tools}
-TBD...
-\section{Remarks and Further Resources}
-TBD...

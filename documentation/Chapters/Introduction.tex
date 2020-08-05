@@ -37,4 +37,45 @@ The synthetic data generation process involves a lot of mathematical functions, 
 A lot of mathematical Python libraries were used in this tool that contained necessary functions for the randomization and the generation of the synthetic data.
 \newpage
 \section{Results}
-\lipsum[5-6]
+Ultimately, the tool should generate fully synthetic data. This is displayed in this section by using some statistics about the database with the real/realistic data (primary database) and then some statistics for the synthesized database, which of course, contains the same schema as the primary one. It will display how similar the statistics about both of the databases are.\\
+\newline
+Statistics for the table \textit{atp\_players} of the primary database (with real data), as displayed in the \textit{pg\_stats} table (some numbers are rounded down in order to fit the table to the page):
+\begin{table}[H]
+\caption{Stats for the database with the real data}
+\label{tab:real_data_stats}
+\centering
+\begin{tabularx}{\linewidth}{|l|r|X|r|X|X|X|}
+\hline
+	attname & null\_frac & avg\_width & n\_distinct & vals & freqs & bounds
+	\\ \hline
+hand          & 0.104533    & 2 & 3         & \{U,R,L\}                     & \{0.59, 0.28, 0.025\}        & null                                \\ \hline
+player\_id    & 0           & 4 & -1        & null                          & null                              & \{100003, ... , 2009902\}           \\ \hline
+last\_name    & 0.000766 & 8 & -0.540106 & \{Lee, Kim, ...\}        & \{0.00273, 0.00236, ...\}     & \{"A Cantacuzene", ... , "Zysset"\} \\ \hline
+first\_name   & 0.00326  & 7 & -0.174477 & \{David, Daniel, ...\} & \{0.0105, 0.01, ...\}        & \{"A Baisley", ... ,  "Zygmunt"\}      \\ \hline
+country\_code & 0.001       & 4 & 203       & \{USA, ESP, ...\}     & \{0.158867, 0.0478, 0.047667...\} & \{AFG, ... , ZAM\}                  \\ \hline
+birth\_date   & 0.21196    & 4 & -0.240834 & \{19790525, 19870620, ...\}      & \{0.0003, 0.0003, 0.0003...\}     & \{18340000, ..., 20050210\}         \\ \hline
+\end{tabularx}
+\end{table}
+\newpage
+Statistics for the table \textit{atp\_players} of the generated database (with synthetic data), as displayed in the \textit{pg\_stats} table (some numbers are rounded down in order to fit the table to the page):
+\begin{table}[H]
+\caption{Stats for the database with the synthetic data}
+\label{tab:synthetic_data_stats}
+\centering
+\begin{tabularx}{\linewidth}{|l|r|X|r|X|X|X|}
+\hline
+	attname & null\_frac & avg\_width & n\_distinct & vals & freqs & bounds
+	\\ \hline
+hand          & 0.107429    & 2 & 3         & \{F,A,G\}                     & \{0.59, 0.27, 0.025\}        & null                                \\ \hline
+player\_id    & 0           & 4 & -1        & null                          & null                              & \{1, ... , 2746\}           \\ \hline
+last\_name    & 0.0007283 & 8 & -0.876548 & \{Ukwfpqd, Oajhsjb, ...\}        & \{0.00619, 0.00546, ...\}     & \{"Aartxd", ... , "Zzxlbuj"\} \\ \hline
+first\_name   & 0.0036416  & 7 & -0.634377 & \{Rdalbp, Sriyqz, ...\} & \{0.0127, 0.0076, ...\}        & \{"Abmydx", ... ,  "Zzylni"\}      \\ \hline
+country\_code & 0.00072       & 4 & 128       & \{CIB, MSL, ...\}     & \{0.16169, 0.04879, 0.04878...\} & \{DWG, ... , YXR\}                  \\ \hline
+birth\_date   & 0.217043    & 4 & -0.673343 & \{18765471, 19144610, ...\}      & \{0.0015, 0.0015, 0.0015...\}     & \{18340011, ..., 20048074\}         \\ \hline
+\end{tabularx}
+\end{table}
+As displayed in the above tables, we can see that the similarity between the statistics is very high in the columns like: \textit{n\_distinct, avg\_width, most\_common\_vals, most\_common\_freqs} etc.\\
+\newline
+Only the \textit{n\_distinct} value is not similar because that can not be determined by the tool (only in the cases when it's positive) because since \textit{pg\_stats} table arrays only hold 100 values, we can't know the further frequencies of the other values and therefore cannot match the \textit{n\_distinct} of the real data.\\
+\newline
+More information on the \textit{pg\_stats} columns and their meanings can be found on the official PostgreSQL wiki page.
