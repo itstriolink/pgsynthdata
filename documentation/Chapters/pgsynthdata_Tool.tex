@@ -4,17 +4,34 @@
 The tool is a single lightweight Python script, executable from the shell terminal. The tool first connects to an existing PostgreSQL database (based on the passed arguments) and then based on whether \mintinline{bash}{-show} or \mintinline{bash}{-generate} arguments were passed, with \mintinline{bash}{-show} being the default one. The tool also accepts database connection parameters (all optional) such as \mintinline{bash}{-H, -P, -U} for connecting to the desired database server.\\
 The \mintinline{bash}{-show} argument (which is the default one) will show the configuration of the database and the \mintinline{bash}{-generate} argument generates the synthetic data to the database with the name \mintinline{bash}{DBNAMEGEN}, which is one of the required arguments for this tool.\\
 To be continued...
-\section{Design and Implementation}
+\section{Design Decisions}
 This tool is written and coded using the Python programming language.\\
 It uses various Python libraries that are used for: argument parsing, various mathematical functions, making the connection to the PostgreSQL server easier etc.\\
-It is a single python script that is to be executed using the shell terminal. It requires some arguments/parameters initially in order to evaluate the PostgreSQL server it needs to connect to, what database it relies on for generating the synthetic data and also the database where the synthetic data will be generated on.\\
-TBD...
-\subsection{Design Decisions}
+It is a python tool that can be executed with the \textit{pgsynthdata.py} via the shell terminal. It requires some arguments/parameters initially in order to evaluate the PostgreSQL server it needs to connect to, what database it relies on for generating the synthetic data and also the database where the synthetic data will be generated on.\\
+It is split into four Python scripts:
+\begin{enumerate}
+\item{\textit{pgsynthdata} - Entry (main) script that communicates with the terminal, communicates with other classes for generating the data and navigates through the right code based on the arguments parsed.}
+\item{\textit{data\_generator.py} - Data generator script, which contains all the logic for synthesizing and generating the synthetic data.}
+\item{\textit{postgres.py} - The postgres script, which contains all the  logic for communicating with the database such as: transactions, insertions, deletions, database creations etc.}
+\item{\textit{utils.py} - A utility script that contains helper methods for number randomizations, string randomizations, string formattings and such.}
+\end{enumerate}
+The main script has the code for all the arguments parsing and help information about the tool. It initially communicates with the postgres methods in order to truncate tables or recreate a whole database itself. After finishing the database requirements, it communicates with the data generator script and sends the correct request to it, depending what arguments were passed (\textit{-show} or \textit{-generate}). The data generator class handles all the other code for the synthesization, generation and insertion. When that is finished, the script breaks out of its operation and the process is finished.\\
+More information on the approach for communicating with the database, data synthesization, data generation and insertion is located in the \nameref{ch:technical_implementation} chapter.
+\subsection{Design Decision - Programming Language}
+The decision to use the Python programming language was mainly because of it being very convenient for terminal usage and argument parsing. It is also widely known as a very good programming language for light-weight tools with functionality such as this. It offers very convenient libraries for communicating with the database, for the mathematical functions that were used for synthesizing the data, for executing terminal commands from the code, for randomizations etc.
+\subsection{Design Decisions - Database Management System}
+There are two main reasons for deciding to use PostgreSQL as the database management system: 
+\begin{enumerate}
+\item{The statistics view that it provides (\textit{pg\_stats}), which is necessary for implementing a tool like this}
+\item{The Python library that is used for communicating with the PostgreSQL.}
+\end{enumerate}
+Other than that, PostgreSQL is not very difficult to set-up and is quite popular in enterprise use. One of the limitations of this tool is having the data stored only in PostgreSQL, it doesn't work with any other database management system.
 
+\newpage
 \section{Tool Usage}
 The tool is very straightforward to use. It contains a single Python script, with all the logic of connecting to the database and showing/generating the data in a single script. It is a script, designed to be executed from the terminal shell using the python command.\\
 \newline
-The tool is somehow split into two parts. The first part is the database connection part, which, based on the arguments given for the database and the PostgreSQL connection parameters, tries to connect to that database instance in the server. If everything there is successful, the tool then continues with the data synthesization part, which is the second part.
+The tool is somehow split into two parts. The first part is the database connection part, which, based on the arguments given for the database and the PostgreSQL connection parameters, tries to connect to that database instance in the server. If everything there is successful, the tool then continues with the data synthesization part, which is the second part.\\
 \newline
 \textbf{Tool usage:} \newline
 \mintinline{bash}{pgsynthdata [OPTIONS]... DBNAMEIN [DBNAMEGEN]} \\
