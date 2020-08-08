@@ -7,8 +7,8 @@ documentation:
   image: "timnn/texlive"
   stage: "build"
   script: [
-      "apt-get update && apt-get install -y python-pip",
-      "pip install Pygments",
+      "apt-get update && apt-get install -y python3-pip",
+      "pip3 install Pygments",
       "cd documentation",
       "pdflatex -synctex=1 --shell-escape -interaction=nonstopmode Seminar.tex"
       ]
